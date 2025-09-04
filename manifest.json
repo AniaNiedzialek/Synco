@@ -1,5 +1,5 @@
 {
-    "manifest_versio":3,
+    "manifest_version":3,
     "name": "Synco",
     "version": "1.0",
     "description": "A collaborative tool to help students manage group projects",
