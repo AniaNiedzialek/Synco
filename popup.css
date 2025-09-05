@@ -32,11 +32,21 @@ button {
     color: white;
     border: none;
     padding: 8px 15px;
+    border-radius: 7px;
     cursor: pointer;
 }
 
 button:hover {
-    background-color: #2980b9;
+    background-color: #7ad3f9;
+}
+
+input[type="text"]{
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+    border: 1px solid #ddd;
+    border-radius: 4px;
 }
 
 .remove-btn {
