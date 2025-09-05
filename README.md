@@ -1,6 +1,9 @@
-# Synco - the ultimate group project base!
+# Synco - Synchronize & Collaborate!
 
 This isn't just a simple to-do list; it's a dynamic, smart tool that simplifies every step of a group project.
 
 
-Stay tuned!
+Hi! Welcome to Synco - an ultimate group project guide. Here you can create, assign, and manage tasks and control the group participation.
+
+
+Stay tuned for more features!

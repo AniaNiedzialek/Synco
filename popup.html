@@ -5,10 +5,22 @@
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-  <img src="images/logo.png" alt="Synco Logo" style="width: 125px;">
-  <input type="text" id="task-input" placeholder="Enter a new task...">
-  <button id="add-task-btn">Add New Task</button>
-  <ul id="task-list"></ul>
-  <script src="popup.js"></script>
+     <div id="login-form">
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button id="login-btn">Log In</button>
+    </div>
+    <div id=task-manager style="display:none;">
+        <img src="images/logo.png" alt="Synco Logo" style="width: 125px;">
+        <input type="text" id="task-input" placeholder="Enter a new task...">
+        <button id="add-task-btn">Add New Task</button>
+        <ul id="task-list"></ul>
+        </div>
+        
+        <script src="popup.js"></script>
+
 </body>
+
+   
 </html>
