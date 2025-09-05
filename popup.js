@@ -28,7 +28,10 @@ function createTaskElement(task) {
   const newTask = document.createElement('li');
   const taskSpan = document.createElement('span');
   taskSpan.textContent = task.text;
+  taskSpan.classList.add('task-text'); // Add a class for styling/targeting
   newTask.appendChild(taskSpan);
+  
+  taskSpan.addEventListener('click', () => activateTaskEdit(task, taskSpan));
 
   const removeBtn = document.createElement('button');
   removeBtn.textContent = 'x';
@@ -36,7 +39,6 @@ function createTaskElement(task) {
   newTask.appendChild(removeBtn);
 
   removeBtn.addEventListener('click', () => {
-    // Ensure task.id exists before trying to delete
     if (!task.id) {
       console.error("Task ID not found for deletion. Task might not have been properly created.");
       alert("Failed to delete task. It might not have been created on the server.");
@@ -65,26 +67,103 @@ function createTaskElement(task) {
   return newTask;
 }
 
-// Function to load tasks from the API
+// Activates in-line editing for a task
+function activateTaskEdit(task, taskSpanElement) {
+    if (taskSpanElement.querySelector('input')) {
+        return; 
+    }
+
+    const originalText = task.text;
+    const inputField = document.createElement('input');
+    inputField.type = 'text';
+    inputField.value = originalText;
+    inputField.classList.add('edit-task-input'); 
+
+    taskSpanElement.replaceChildren(inputField);
+    inputField.focus(); 
+    inputField.select(); 
+
+    const saveEdit = () => {
+        const newText = inputField.value.trim();
+        if (newText === '') {
+            alert("Task text cannot be empty.");
+            taskSpanElement.textContent = originalText; 
+            task.text = originalText; 
+            return;
+        }
+        if (newText === originalText) {
+            taskSpanElement.textContent = originalText;
+            return;
+        }
+
+        getToken().then(token => {
+            const dataToUpdate = { text: newText };
+            if (task.group) {
+                dataToUpdate.group = task.group;
+            }
+
+            fetch(`${API_URL}tasks/${task.id}/`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${token}`
+                },
+                body: JSON.stringify(dataToUpdate),
+            }).then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw new Error(JSON.stringify(err)); });
+                }
+                return response.json();
+            }).then(updatedTask => {
+                taskSpanElement.textContent = updatedTask.text;
+                task.text = updatedTask.text;
+            }).catch(error => {
+                console.error('Error editing task:', error);
+                alert('Failed to edit task. Error: ' + error.message);
+                taskSpanElement.textContent = originalText;
+                task.text = originalText;
+            });
+        });
+    };
+
+    inputField.addEventListener('blur', saveEdit);
+
+    inputField.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            inputField.blur();
+        }
+    });
+}
+
+// ✨ THE FIX: FUNCTION TO LOAD TASKS FROM THE API, NOW WITH FILTERING ✨
 function loadTasks() {
   getToken().then(token => {
     if (!token) {
-      // If no token, make sure UI reflects login state
       if (loginForm && taskManager) {
         loginForm.style.display = 'block';
         taskManager.style.display = 'none';
       }
       return;
     }
+    
+    // Get the currently selected group ID
+    const selectedGroupId = groupDropdown.value;
 
-    fetch(`${API_URL}tasks/`, {
+    let url = `${API_URL}tasks/`;
+    // Add a filter parameter to the URL based on the selected group
+    if (selectedGroupId) {
+      url += `?group=${selectedGroupId}`;
+    } else {
+      url += `?group__isnull=True`; // DRF filter for null group
+    }
+
+    fetch(url, {
       headers: {
         'Authorization': `Token ${token}`
       },
     })
     .then(response => {
       if (response.status === 401) {
-        // Token is invalid, force logout
         chrome.storage.sync.set({ 'authToken': null }, () => {
           if (loginForm && taskManager) {
             loginForm.style.display = 'block';
@@ -192,22 +271,19 @@ function handleAddTask() {
       return;
   }
   const taskText = taskInput.value.trim();
-  if (taskText === '') { // Explicit check for empty string after trimming
+  if (taskText === '') {
       alert("Task cannot be blank!");
-      taskInput.value = ''; // Clear input if blank
+      taskInput.value = '';
       return;
   }
   const selectedGroupId = groupDropdown.value;
 
-  // 🐛 THE FIX FOR THE "PERSONAL" GROUP ISSUE
   const data = {
     text: taskText,
   };
-  // Only add the 'group' field if a group is actually selected (i.e., not the personal group)
   if (selectedGroupId !== '') {
       data.group = selectedGroupId;
   }
-  // 🐛 END OF FIX
   
   getToken().then(token => {
     fetch(`${API_URL}tasks/`, {
@@ -218,7 +294,7 @@ function handleAddTask() {
       },
       body: JSON.stringify(data),
     }).then(response => {
-        if (!response.ok) { // Handle non-2xx responses for task creation
+        if (!response.ok) {
             return response.json().then(err => { throw new Error(JSON.stringify(err)); });
         }
         return response.json();
@@ -241,7 +317,7 @@ function handleAddTask() {
 
 function handleAddGroup() {
   const groupName = prompt('Enter a name for the new group:');
-  if (groupName && groupName.trim() !== '') { // Validate group name is not blank
+  if (groupName && groupName.trim() !== '') {
     getToken().then(token => {
       fetch(`${API_URL}groups/`, {
         method: 'POST',
@@ -260,21 +336,20 @@ function handleAddGroup() {
         loadGroups();
         if (groupDropdown) {
             groupDropdown.value = group.id;
-            loadTasks(); // Reload tasks for the newly selected group
+            loadTasks();
         }
       }).catch(error => {
         console.error('Error adding group:', error);
         alert(`Failed to add group: ${error.message}`);
       });
     });
-  } else if (groupName !== null) { // If prompt was not cancelled but name was blank
+  } else if (groupName !== null) {
       alert("Group name cannot be blank.");
   }
 }
 
 // Main initialization logic - runs after the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', () => {
-  // Assign all HTML element references here
   loginForm = document.getElementById('login-form');
   usernameInput = document.getElementById('username');
   passwordInput = document.getElementById('password');
@@ -287,17 +362,14 @@ document.addEventListener('DOMContentLoaded', () => {
   groupDropdown = document.getElementById('group-dropdown');
   addGroupBtn = document.getElementById('add-group-btn');
 
-  // Attach all event listeners here, ensuring elements exist
   if (loginBtn) loginBtn.addEventListener('click', handleLogin);
   if (addTaskBtn) addTaskBtn.addEventListener('click', handleAddTask);
   if (addGroupBtn) addGroupBtn.addEventListener('click', handleAddGroup);
-  if (groupDropdown) groupDropdown.addEventListener('change', loadTasks);
+  
+  // ✨ THE FIX: We now call loadTasks() without an event argument
+  if (groupDropdown) groupDropdown.addEventListener('change', () => loadTasks());
 
-
-  // 🔑 CRITICAL FIX: AGGRESSIVELY CLEAR TOKEN ON STARTUP 🔑
-  // This ensures the login screen appears if a token is not valid or present.
   chrome.storage.sync.set({ 'authToken': null }, () => {
-    // Then proceed with the normal token check
     getToken().then(token => {
       if (token) {
         if (loginForm && taskManager) {
