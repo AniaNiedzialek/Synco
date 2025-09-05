@@ -23,15 +23,30 @@ function getToken() {
   });
 }
 
-// Helper function to create a task element with a remove button
+// ✨ UPDATED: Helper function to create a task element with a checkbox and remove button ✨
 function createTaskElement(task) {
   const newTask = document.createElement('li');
+
+  // Create and add a checkbox
+  const checkbox = document.createElement('input');
+  checkbox.type = 'checkbox';
+  checkbox.checked = task.completed;
+  checkbox.classList.add('task-checkbox');
+  checkbox.addEventListener('change', () => handleCompleteTask(task, checkbox));
+  newTask.appendChild(checkbox);
+
   const taskSpan = document.createElement('span');
   taskSpan.textContent = task.text;
-  taskSpan.classList.add('task-text'); // Add a class for styling/targeting
-  newTask.appendChild(taskSpan);
+  taskSpan.classList.add('task-text');
   
+  // Apply strikethrough if the task is completed
+  if (task.completed) {
+      taskSpan.classList.add('completed');
+  }
+
   taskSpan.addEventListener('click', () => activateTaskEdit(task, taskSpan));
+
+  newTask.appendChild(taskSpan);
 
   const removeBtn = document.createElement('button');
   removeBtn.textContent = 'x';
@@ -67,7 +82,50 @@ function createTaskElement(task) {
   return newTask;
 }
 
-// Activates in-line editing for a task
+// ✨ NEW FUNCTION: Handles marking a task as complete ✨
+function handleCompleteTask(task, checkboxElement) {
+    const isCompleted = checkboxElement.checked;
+    const taskSpanElement = checkboxElement.nextElementSibling;
+    
+    getToken().then(token => {
+        const dataToUpdate = { 
+            text: task.text,
+            completed: isCompleted,
+        };
+        // The group field must be included in the PUT request
+        if (task.group) {
+            dataToUpdate.group = task.group;
+        }
+
+        fetch(`${API_URL}tasks/${task.id}/`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Token ${token}`
+            },
+            body: JSON.stringify(dataToUpdate),
+        }).then(response => {
+            if (!response.ok) {
+                return response.json().then(err => { throw new Error(JSON.stringify(err)); });
+            }
+            return response.json();
+        }).then(updatedTask => {
+            task.completed = updatedTask.completed;
+            if (task.completed) {
+                taskSpanElement.classList.add('completed');
+            } else {
+                taskSpanElement.classList.remove('completed');
+            }
+        }).catch(error => {
+            console.error('Error completing task:', error);
+            alert('Failed to update task completion status. Error: ' + error.message);
+            // Revert checkbox state on error
+            checkboxElement.checked = !isCompleted;
+        });
+    });
+}
+// ✨ END OF NEW FUNCTION ✨
+
 function activateTaskEdit(task, taskSpanElement) {
     if (taskSpanElement.querySelector('input')) {
         return; 
@@ -97,7 +155,10 @@ function activateTaskEdit(task, taskSpanElement) {
         }
 
         getToken().then(token => {
-            const dataToUpdate = { text: newText };
+            const dataToUpdate = { 
+                text: newText,
+                completed: task.completed,
+            };
             if (task.group) {
                 dataToUpdate.group = task.group;
             }
@@ -135,7 +196,6 @@ function activateTaskEdit(task, taskSpanElement) {
     });
 }
 
-// ✨ THE FIX: FUNCTION TO LOAD TASKS FROM THE API, NOW WITH FILTERING ✨
 function loadTasks() {
   getToken().then(token => {
     if (!token) {
@@ -146,15 +206,12 @@ function loadTasks() {
       return;
     }
     
-    // Get the currently selected group ID
     const selectedGroupId = groupDropdown.value;
-
     let url = `${API_URL}tasks/`;
-    // Add a filter parameter to the URL based on the selected group
     if (selectedGroupId) {
       url += `?group=${selectedGroupId}`;
     } else {
-      url += `?group__isnull=True`; // DRF filter for null group
+      url += `?group__isnull=True`;
     }
 
     fetch(url, {
@@ -197,7 +254,6 @@ function loadTasks() {
   });
 }
 
-// Function to load groups from the API
 function loadGroups() {
   getToken().then(token => {
     if (!token) return;
@@ -229,7 +285,6 @@ function loadGroups() {
   });
 }
 
-// Event handlers
 function handleLogin() {
   const username = usernameInput.value;
   const password = passwordInput.value;
@@ -348,7 +403,6 @@ function handleAddGroup() {
   }
 }
 
-// Main initialization logic - runs after the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', () => {
   loginForm = document.getElementById('login-form');
   usernameInput = document.getElementById('username');
@@ -365,8 +419,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (loginBtn) loginBtn.addEventListener('click', handleLogin);
   if (addTaskBtn) addTaskBtn.addEventListener('click', handleAddTask);
   if (addGroupBtn) addGroupBtn.addEventListener('click', handleAddGroup);
-  
-  // ✨ THE FIX: We now call loadTasks() without an event argument
   if (groupDropdown) groupDropdown.addEventListener('change', () => loadTasks());
 
   chrome.storage.sync.set({ 'authToken': null }, () => {

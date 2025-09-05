@@ -58,3 +58,16 @@ input[type="text"]{
     margin-left: 10px;
 }
 
+.task-text.completed {
+    text-decoration: line-through;
+    color: #888;
+}
+li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.task-checkbox {
+    cursor: pointer;
+}
