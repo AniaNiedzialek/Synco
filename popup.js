@@ -10,10 +10,11 @@ let taskInput;
 let taskList;
 let groupDropdown;
 let addGroupBtn;
+let deleteGroupBtn; // ✨ New variable for the delete group button ✨
 let logoutBtn;
 
 // The base URL of our Django API.
-const API_URL = 'http://127.0.0.1:8000/api/'; // ✨ FIXED: Changed 172.0.0.1 to 127.0.0.1 ✨
+const API_URL = 'http://127.0.0.1:8000/api/';
 
 // Helper function to get the authentication token
 function getToken() {
@@ -284,7 +285,7 @@ function handleLogin() {
   const username = usernameInput.value;
   const password = passwordInput.value;
 
-  fetch(`http://127.0.0.1:8000/api/api-token-auth/`, { // ✨ FIXED: Changed 172.0.0.1 to 127.0.0.1 ✨
+  fetch(`http://127.0.0.1:8000/api/api-token-auth/`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -314,6 +315,44 @@ function handleLogin() {
         alert('Network error during login. Is the server running?');
     });
 }
+
+// ✨ NEW FUNCTION: Handles group deletion ✨
+function handleDeleteGroup() {
+    const selectedGroupId = groupDropdown.value;
+    const selectedGroupName = groupDropdown.options[groupDropdown.selectedIndex].text;
+    
+    if (!selectedGroupId) {
+        alert('Cannot delete the "Personal" group.');
+        return;
+    }
+
+    if (!confirm(`Are you sure you want to delete the group "${selectedGroupName}"? This will delete all tasks within it.`)) {
+        return;
+    }
+
+    getToken().then(token => {
+        fetch(`${API_URL}groups/${selectedGroupId}/`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Token ${token}`
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                alert(`Group "${selectedGroupName}" has been deleted.`);
+                loadGroups();
+                loadTasks();
+            } else {
+                return response.json().then(err => { throw new Error(JSON.stringify(err)); });
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting group:', error);
+            alert(`Failed to delete group. Error: ${error.message}`);
+        });
+    });
+}
+// ✨ END OF NEW FUNCTION ✨
 
 function handleLogout() {
     chrome.storage.sync.set({ 'authToken': null }, () => {
@@ -354,7 +393,7 @@ function handleAddTask() {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Token ${token}`
-        },
+      },
       body: JSON.stringify(data),
     }).then(response => {
         if (!response.ok) {
@@ -423,12 +462,14 @@ document.addEventListener('DOMContentLoaded', () => {
   taskList = document.getElementById('task-list');
   groupDropdown = document.getElementById('group-dropdown');
   addGroupBtn = document.getElementById('add-group-btn');
+  deleteGroupBtn = document.getElementById('delete-group-btn'); // ✨ Get a reference to the new button ✨
   logoutBtn = document.getElementById('logout-btn');
 
   if (loginBtn) loginBtn.addEventListener('click', handleLogin);
   if (addTaskBtn) addTaskBtn.addEventListener('click', handleAddTask);
   if (addGroupBtn) addGroupBtn.addEventListener('click', handleAddGroup);
   if (groupDropdown) groupDropdown.addEventListener('change', () => loadTasks());
+  if (deleteGroupBtn) deleteGroupBtn.addEventListener('click', handleDeleteGroup); // ✨ Add the new event listener ✨
   if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
 
   chrome.storage.sync.set({ 'authToken': null }, () => {
