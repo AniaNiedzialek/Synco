@@ -46,7 +46,11 @@ function createTaskElement(task) {
           newTask.remove();
         } else {
           console.error('Failed to delete task');
+          alert('Failed to delete task. You might not be logged in or have permission.');
         }
+      }).catch(error => {
+        console.error('Network error on delete:', error);
+        alert('Network error on delete.');
       });
     });
   });
@@ -57,12 +61,28 @@ function createTaskElement(task) {
 // Function to load tasks from the API
 function loadTasks() {
   getToken().then(token => {
+    if (!token) {
+      // No token, show login form
+      loginForm.style.display = 'block';
+      taskManager.style.display = 'none';
+      return;
+    }
+
     fetch(`${API_URL}tasks/`, {
       headers: {
         'Authorization': `Token ${token}`
       },
     })
-    .then(response => response.json())
+    .then(response => {
+      if (response.status === 401) {
+        // Token is invalid, show login form
+        loginForm.style.display = 'block';
+        taskManager.style.display = 'none';
+        chrome.storage.sync.set({ 'authToken': null }); // Clear invalid token
+        return Promise.reject('Unauthorized');
+      }
+      return response.json();
+    })
     .then(tasks => {
       taskList.innerHTML = ''; // Clear the list
       tasks.forEach(task => {
@@ -70,7 +90,15 @@ function loadTasks() {
         taskList.appendChild(taskElement);
       });
     })
-    .catch(error => console.error('Error loading tasks:', error));
+    .catch(error => {
+      console.error('Error loading tasks:', error);
+      // If unauthorized, the login form is already shown, so no alert needed.
+      if (error !== 'Unauthorized') {
+        alert('Error loading tasks. Please try logging in again.');
+        loginForm.style.display = 'block';
+        taskManager.style.display = 'none';
+      }
+    });
   });
 }
 
@@ -92,7 +120,10 @@ addTaskBtn.addEventListener('click', () => {
           taskList.appendChild(taskElement);
           taskInput.value = '';
         })
-        .catch(error => console.error('Error adding task:', error));
+        .catch(error => {
+          console.error('Error adding task:', error);
+          alert('Failed to add task. Please check if you are logged in.');
+        });
     });
   }
 });
@@ -102,13 +133,19 @@ loginBtn.addEventListener('click', () => {
   const username = usernameInput.value;
   const password = passwordInput.value;
 
-  fetch(`${API_URL}api-token-auth/`, {
+  fetch(`http://127.0.0.1:8000/api/api-token-auth/`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({ username, password })
-  }).then(response => response.json())
+  }).then(response => {
+    if (response.status === 400) {
+      alert('Login failed. Please check your username and password.');
+      return Promise.reject('Invalid credentials');
+    }
+    return response.json();
+  })
     .then(data => {
       if (data.token) {
         chrome.storage.sync.set({ 'authToken': data.token }, () => {
@@ -116,20 +153,12 @@ loginBtn.addEventListener('click', () => {
           taskManager.style.display = 'block';
           loadTasks(); // Load tasks after successful login
         });
-      } else {
-        alert('Login failed. Please check your credentials.');
       }
     })
     .catch(error => console.error('Error during login:', error));
 });
 
 // Check for existing token on startup
-window.onload = function() {
-  getToken().then(token => {
-    if (token) {
-      loginForm.style.display = 'none';
-      taskManager.style.display = 'block';
-      loadTasks();
-    }
-  });
-};
+document.addEventListener('DOMContentLoaded', () => {
+  loadTasks();
+});
