@@ -39,3 +39,12 @@ button:hover {
     background-color: #2980b9;
 }
 
+.remove-btn {
+    background-color: transparent;
+    border: none;
+    color: #e74c3c;
+    font-weight: bold;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
