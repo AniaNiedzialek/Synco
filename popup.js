@@ -10,9 +10,10 @@ let taskInput;
 let taskList;
 let groupDropdown;
 let addGroupBtn;
+let logoutBtn;
 
 // The base URL of our Django API.
-const API_URL = 'http://127.0.0.1:8000/api/';
+const API_URL = 'http://127.0.0.1:8000/api/'; // ✨ FIXED: Changed 172.0.0.1 to 127.0.0.1 ✨
 
 // Helper function to get the authentication token
 function getToken() {
@@ -23,11 +24,10 @@ function getToken() {
   });
 }
 
-// ✨ UPDATED: Helper function to create a task element with a checkbox and remove button ✨
+// Helper function to create a task element with a checkbox and remove button
 function createTaskElement(task) {
   const newTask = document.createElement('li');
 
-  // Create and add a checkbox
   const checkbox = document.createElement('input');
   checkbox.type = 'checkbox';
   checkbox.checked = task.completed;
@@ -39,7 +39,6 @@ function createTaskElement(task) {
   taskSpan.textContent = task.text;
   taskSpan.classList.add('task-text');
   
-  // Apply strikethrough if the task is completed
   if (task.completed) {
       taskSpan.classList.add('completed');
   }
@@ -82,7 +81,6 @@ function createTaskElement(task) {
   return newTask;
 }
 
-// ✨ NEW FUNCTION: Handles marking a task as complete ✨
 function handleCompleteTask(task, checkboxElement) {
     const isCompleted = checkboxElement.checked;
     const taskSpanElement = checkboxElement.nextElementSibling;
@@ -92,7 +90,6 @@ function handleCompleteTask(task, checkboxElement) {
             text: task.text,
             completed: isCompleted,
         };
-        // The group field must be included in the PUT request
         if (task.group) {
             dataToUpdate.group = task.group;
         }
@@ -119,12 +116,10 @@ function handleCompleteTask(task, checkboxElement) {
         }).catch(error => {
             console.error('Error completing task:', error);
             alert('Failed to update task completion status. Error: ' + error.message);
-            // Revert checkbox state on error
             checkboxElement.checked = !isCompleted;
         });
     });
 }
-// ✨ END OF NEW FUNCTION ✨
 
 function activateTaskEdit(task, taskSpanElement) {
     if (taskSpanElement.querySelector('input')) {
@@ -289,7 +284,7 @@ function handleLogin() {
   const username = usernameInput.value;
   const password = passwordInput.value;
 
-  fetch(`http://127.0.0.1:8000/api/api-token-auth/`, {
+  fetch(`http://127.0.0.1:8000/api/api-token-auth/`, { // ✨ FIXED: Changed 172.0.0.1 to 127.0.0.1 ✨
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -320,6 +315,19 @@ function handleLogin() {
     });
 }
 
+function handleLogout() {
+    chrome.storage.sync.set({ 'authToken': null }, () => {
+        if (taskList) {
+            taskList.innerHTML = '';
+        }
+        if (loginForm && taskManager) {
+            loginForm.style.display = 'block';
+            taskManager.style.display = 'none';
+        }
+        alert("You have been logged out.");
+    });
+}
+
 function handleAddTask() {
   if (!taskInput || !groupDropdown) {
       console.error("Task input or group dropdown not available.");
@@ -346,7 +354,7 @@ function handleAddTask() {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Token ${token}`
-      },
+        },
       body: JSON.stringify(data),
     }).then(response => {
         if (!response.ok) {
@@ -415,11 +423,13 @@ document.addEventListener('DOMContentLoaded', () => {
   taskList = document.getElementById('task-list');
   groupDropdown = document.getElementById('group-dropdown');
   addGroupBtn = document.getElementById('add-group-btn');
+  logoutBtn = document.getElementById('logout-btn');
 
   if (loginBtn) loginBtn.addEventListener('click', handleLogin);
   if (addTaskBtn) addTaskBtn.addEventListener('click', handleAddTask);
   if (addGroupBtn) addGroupBtn.addEventListener('click', handleAddGroup);
   if (groupDropdown) groupDropdown.addEventListener('change', () => loadTasks());
+  if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
 
   chrome.storage.sync.set({ 'authToken': null }, () => {
     getToken().then(token => {
