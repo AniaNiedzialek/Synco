@@ -1,14 +1,15 @@
-// Get a reference to the login form elements
-const loginForm = document.getElementById('login-form');
-const usernameInput = document.getElementById('username');
-const passwordInput = document.getElementById('password');
-const loginBtn = document.getElementById('login-btn');
+// Global references for all HTML elements - declared but not assigned yet
+let loginForm;
+let usernameInput;
+let passwordInput;
+let loginBtn;
 
-// Get a reference to the task manager elements
-const taskManager = document.getElementById('task-manager');
-const addTaskBtn = document.getElementById('add-task-btn');
-const taskInput = document.getElementById('task-input');
-const taskList = document.getElementById('task-list');
+let taskManager;
+let addTaskBtn;
+let taskInput;
+let taskList;
+let groupDropdown;
+let addGroupBtn;
 
 // The base URL of our Django API.
 const API_URL = 'http://127.0.0.1:8000/api/';
@@ -35,6 +36,12 @@ function createTaskElement(task) {
   newTask.appendChild(removeBtn);
 
   removeBtn.addEventListener('click', () => {
+    // Ensure task.id exists before trying to delete
+    if (!task.id) {
+      console.error("Task ID not found for deletion. Task might not have been properly created.");
+      alert("Failed to delete task. It might not have been created on the server.");
+      return;
+    }
     getToken().then(token => {
       fetch(`${API_URL}tasks/${task.id}/`, {
         method: 'DELETE',
@@ -45,8 +52,8 @@ function createTaskElement(task) {
         if (response.ok) {
           newTask.remove();
         } else {
-          console.error('Failed to delete task');
-          alert('Failed to delete task. You might not be logged in or have permission.');
+          console.error('Failed to delete task with ID:', task.id, 'Response:', response);
+          alert('Failed to delete task. You might not have permission or it no longer exists.');
         }
       }).catch(error => {
         console.error('Network error on delete:', error);
@@ -62,9 +69,11 @@ function createTaskElement(task) {
 function loadTasks() {
   getToken().then(token => {
     if (!token) {
-      // No token, show login form
-      loginForm.style.display = 'block';
-      taskManager.style.display = 'none';
+      // If no token, make sure UI reflects login state
+      if (loginForm && taskManager) {
+        loginForm.style.display = 'block';
+        taskManager.style.display = 'none';
+      }
       return;
     }
 
@@ -75,61 +84,74 @@ function loadTasks() {
     })
     .then(response => {
       if (response.status === 401) {
-        // Token is invalid, show login form
-        loginForm.style.display = 'block';
-        taskManager.style.display = 'none';
-        chrome.storage.sync.set({ 'authToken': null }); // Clear invalid token
+        // Token is invalid, force logout
+        chrome.storage.sync.set({ 'authToken': null }, () => {
+          if (loginForm && taskManager) {
+            loginForm.style.display = 'block';
+            taskManager.style.display = 'none';
+          }
+          alert("Your session has expired. Please log in again.");
+        });
         return Promise.reject('Unauthorized');
       }
       return response.json();
     })
     .then(tasks => {
-      taskList.innerHTML = ''; // Clear the list
-      tasks.forEach(task => {
-        const taskElement = createTaskElement(task);
-        taskList.appendChild(taskElement);
-      });
+      if (taskList) {
+        taskList.innerHTML = '';
+        tasks.forEach(task => {
+          const taskElement = createTaskElement(task);
+          taskList.appendChild(taskElement);
+        });
+      }
     })
     .catch(error => {
       console.error('Error loading tasks:', error);
-      // If unauthorized, the login form is already shown, so no alert needed.
       if (error !== 'Unauthorized') {
         alert('Error loading tasks. Please try logging in again.');
-        loginForm.style.display = 'block';
-        taskManager.style.display = 'none';
+        if (loginForm && taskManager) {
+          loginForm.style.display = 'block';
+          taskManager.style.display = 'none';
+        }
       }
     });
   });
 }
 
-// Add a 'click' event listener to the add task button
-addTaskBtn.addEventListener('click', () => {
-  const taskText = taskInput.value.trim();
-  if (taskText !== '') {
-    getToken().then(token => {
-      fetch(`${API_URL}tasks/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Token ${token}`
-        },
-        body: JSON.stringify({ text: taskText }),
-      }).then(response => response.json())
-        .then(task => {
-          const taskElement = createTaskElement(task);
-          taskList.appendChild(taskElement);
-          taskInput.value = '';
-        })
-        .catch(error => {
-          console.error('Error adding task:', error);
-          alert('Failed to add task. Please check if you are logged in.');
-        });
-    });
-  }
-});
+// Function to load groups from the API
+function loadGroups() {
+  getToken().then(token => {
+    if (!token) return;
 
-// Add a 'click' event listener to the login button
-loginBtn.addEventListener('click', () => {
+    fetch(`${API_URL}groups/`, {
+      headers: {
+        'Authorization': `Token ${token}`
+      },
+    })
+    .then(response => response.json())
+    .then(groups => {
+      if (groupDropdown) {
+        groupDropdown.innerHTML = '';
+        const personalOption = document.createElement('option');
+        personalOption.value = '';
+        personalOption.textContent = 'Personal';
+        groupDropdown.appendChild(personalOption);
+
+        groups.forEach(group => {
+          const option = document.createElement('option');
+          option.value = group.id;
+          option.textContent = group.name;
+          groupDropdown.appendChild(option);
+        });
+        chrome.storage.sync.set({'groups': groups});
+      }
+    })
+    .catch(error => console.error('Error loading groups:', error));
+  });
+}
+
+// Event handlers
+function handleLogin() {
   const username = usernameInput.value;
   const password = passwordInput.value;
 
@@ -149,16 +171,140 @@ loginBtn.addEventListener('click', () => {
     .then(data => {
       if (data.token) {
         chrome.storage.sync.set({ 'authToken': data.token }, () => {
-          loginForm.style.display = 'none';
-          taskManager.style.display = 'block';
-          loadTasks(); // Load tasks after successful login
+          if (loginForm && taskManager) {
+            loginForm.style.display = 'none';
+            taskManager.style.display = 'block';
+          }
+          loadGroups();
+          loadTasks();
         });
       }
     })
-    .catch(error => console.error('Error during login:', error));
-});
+    .catch(error => {
+        console.error('Error during login:', error);
+        alert('Network error during login. Is the server running?');
+    });
+}
 
-// Check for existing token on startup
+function handleAddTask() {
+  if (!taskInput || !groupDropdown) {
+      console.error("Task input or group dropdown not available.");
+      return;
+  }
+  const taskText = taskInput.value.trim();
+  if (taskText === '') { // Explicit check for empty string after trimming
+      alert("Task cannot be blank!");
+      taskInput.value = ''; // Clear input if blank
+      return;
+  }
+  const selectedGroupId = groupDropdown.value;
+  getToken().then(token => {
+    const data = {
+      text: taskText,
+      group: selectedGroupId || null,
+    };
+    fetch(`${API_URL}tasks/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Token ${token}`
+      },
+      body: JSON.stringify(data),
+    }).then(response => {
+        if (!response.ok) { // Handle non-2xx responses for task creation
+            return response.json().then(err => { throw new Error(JSON.stringify(err)); });
+        }
+        return response.json();
+    })
+      .then(task => {
+        if (!selectedGroupId || (task.group && task.group == selectedGroupId) || (!task.group && !selectedGroupId)) {
+          if (taskList) {
+            const taskElement = createTaskElement(task);
+            taskList.appendChild(taskElement);
+          }
+        }
+        taskInput.value = '';
+      })
+      .catch(error => {
+        console.error('Error adding task:', error);
+        alert('Failed to add task. Make sure you are logged in and the task is not blank. Error: ' + error.message);
+      });
+  });
+}
+
+function handleAddGroup() {
+  const groupName = prompt('Enter a name for the new group:');
+  if (groupName && groupName.trim() !== '') { // Validate group name is not blank
+    getToken().then(token => {
+      fetch(`${API_URL}groups/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Token ${token}`
+        },
+        body: JSON.stringify({ name: groupName }),
+      }).then(response => {
+        if (!response.ok) {
+          return response.json().then(err => { throw new Error(JSON.stringify(err)); });
+        }
+        return response.json();
+      }).then(group => {
+        alert(`Group "${group.name}" created successfully!`);
+        loadGroups();
+        if (groupDropdown) {
+            groupDropdown.value = group.id;
+            loadTasks(); // Reload tasks for the newly selected group
+        }
+      }).catch(error => {
+        console.error('Error adding group:', error);
+        alert(`Failed to add group: ${error.message}`);
+      });
+    });
+  } else if (groupName !== null) { // If prompt was not cancelled but name was blank
+      alert("Group name cannot be blank.");
+  }
+}
+
+// Main initialization logic - runs after the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', () => {
-  loadTasks();
+  // Assign all HTML element references here
+  loginForm = document.getElementById('login-form');
+  usernameInput = document.getElementById('username');
+  passwordInput = document.getElementById('password');
+  loginBtn = document.getElementById('login-btn');
+
+  taskManager = document.getElementById('task-manager');
+  addTaskBtn = document.getElementById('add-task-btn');
+  taskInput = document.getElementById('task-input');
+  taskList = document.getElementById('task-list');
+  groupDropdown = document.getElementById('group-dropdown');
+  addGroupBtn = document.getElementById('add-group-btn');
+
+  // Attach all event listeners here, ensuring elements exist
+  if (loginBtn) loginBtn.addEventListener('click', handleLogin);
+  if (addTaskBtn) addTaskBtn.addEventListener('click', handleAddTask);
+  if (addGroupBtn) addGroupBtn.addEventListener('click', handleAddGroup);
+  if (groupDropdown) groupDropdown.addEventListener('change', loadTasks);
+
+
+  // 🔑 CRITICAL FIX: AGGRESSIVELY CLEAR TOKEN ON STARTUP 🔑
+  // This ensures the login screen appears if a token is not valid or present.
+  chrome.storage.sync.set({ 'authToken': null }, () => {
+    // Then proceed with the normal token check
+    getToken().then(token => {
+      if (token) {
+        if (loginForm && taskManager) {
+          loginForm.style.display = 'none';
+          taskManager.style.display = 'block';
+        }
+        loadGroups();
+        loadTasks();
+      } else {
+        if (loginForm && taskManager) {
+          loginForm.style.display = 'block';
+          taskManager.style.display = 'none';
+        }
+      }
+    });
+  });
 });
