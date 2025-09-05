@@ -198,11 +198,18 @@ function handleAddTask() {
       return;
   }
   const selectedGroupId = groupDropdown.value;
+
+  // 🐛 THE FIX FOR THE "PERSONAL" GROUP ISSUE
+  const data = {
+    text: taskText,
+  };
+  // Only add the 'group' field if a group is actually selected (i.e., not the personal group)
+  if (selectedGroupId !== '') {
+      data.group = selectedGroupId;
+  }
+  // 🐛 END OF FIX
+  
   getToken().then(token => {
-    const data = {
-      text: taskText,
-      group: selectedGroupId || null,
-    };
     fetch(`${API_URL}tasks/`, {
       method: 'POST',
       headers: {
