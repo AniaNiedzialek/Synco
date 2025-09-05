@@ -1,8 +1,13 @@
+# tasks/urls.py
+
 from django.urls import path
 from . import views
+from rest_framework.authtoken.views import obtain_auth_token
 
 urlpatterns = [
-    path('tasks/', views.task_list, name='task-list'),
-    path('tasks/<int:pk>/',views.task_detail, name='task-detail'),
-    path('groups/', views.group_list, name='group-list'),
+    path('tasks/', views.task_list, name='task_list'),
+    path('tasks/<int:pk>/', views.task_detail, name='task_detail'),
+    path('groups/', views.group_list, name='group_list'),
+    path('groups/<int:pk>/', views.group_detail, name='group_detail'), # ✨ Add this line ✨
+    path('api-token-auth/', obtain_auth_token, name='api_token_auth'),
 ]

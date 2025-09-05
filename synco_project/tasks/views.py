@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from .models import Task, Group
 from .serializers import TaskSerializer, GroupSerializer
-from .permissions import IsOwnerOrReadOnly
+from .permissions import IsOwnerOrReadOnly # Assuming you have this for tasks
 from django.db.models import Q # Import the Q object for complex lookups
 
 @api_view(['GET', 'POST'])
@@ -69,7 +69,7 @@ def task_detail(request, pk):
         return Response(serializer.data)
 
     elif request.method == 'PUT':
-        serializer = TaskSerializer(task, data=request.data) # Changed partial=True to allow full updates
+        serializer = TaskSerializer(task, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -97,3 +97,38 @@ def group_list(request):
             group.members.add(request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# ✨ ADD THIS NEW VIEW FUNCTION TO YOUR FILE ✨
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def group_detail(request, pk):
+    """
+    Retrieve, update, or delete a group.
+    Only group members can access. Only the creator (or an admin) could delete.
+    For simplicity, we'll allow any member to delete for now.
+    """
+    try:
+        group = Group.objects.get(pk=pk)
+    except Group.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    # Security check: Only members of the group can view/edit/delete it
+    if request.user not in group.members.all():
+        return Response({'error': 'You do not have permission to access this group.'},
+                        status=status.HTTP_403_FORBIDDEN)
+
+    if request.method == 'GET':
+        serializer = GroupSerializer(group)
+        return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        serializer = GroupSerializer(group, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        group.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
