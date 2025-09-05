@@ -1,5 +1,6 @@
 # Synco - Synchronize & Collaborate!
 
+
 ![Synco Logo](images/logo.png)
 
 
