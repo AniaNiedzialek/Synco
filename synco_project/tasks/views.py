@@ -5,34 +5,50 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Task, Group
 from .serializers import TaskSerializer, GroupSerializer
 from .permissions import IsOwnerOrReadOnly
+from django.db.models import Q # Import the Q object for complex lookups
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def task_list(request):
     """
-    List all tasks for the authenticated user (personal and group),
-    or create a new task.
+    List tasks based on group selection, or create a new task.
     """
     if request.method == 'GET':
-        # Get tasks that are owned by the user (personal tasks)
-        personal_tasks = Task.objects.filter(user=request.user, group__isnull=True)
-        # Get tasks from groups the user is a member of
-        group_tasks = Task.objects.filter(group__members=request.user)
-        # Combine and order all tasks
-        all_tasks = (personal_tasks | group_tasks).distinct().order_by('-created_at')
-        serializer = TaskSerializer(all_tasks, many=True)
+        # ✨ THE FIX: Check for filtering parameters from the URL
+        group_id = request.query_params.get('group')
+        is_personal_group = request.query_params.get('group__isnull') == 'True'
+
+        if is_personal_group:
+            # If "Personal" group is selected, show only tasks with a null group
+            tasks = Task.objects.filter(user=request.user, group__isnull=True)
+        elif group_id:
+            # If a specific group is selected, filter by that group's ID
+            # Also, ensure the user is a member of that group for security
+            try:
+                # This ensures the user is a member before showing the tasks
+                group = Group.objects.get(id=group_id, members=request.user)
+                tasks = Task.objects.filter(group=group)
+            except Group.DoesNotExist:
+                return Response({"error": "Group not found or you are not a member."},
+                                status=status.HTTP_404_NOT_FOUND)
+        else:
+            # Default case (if no filter is applied)
+            # Combine personal tasks and tasks from groups the user is a member of
+            personal_tasks = Task.objects.filter(user=request.user, group__isnull=True)
+            group_tasks = Task.objects.filter(group__members=request.user)
+            tasks = (personal_tasks | group_tasks).distinct()
+
+        serializer = TaskSerializer(tasks.order_by('-created_at'), many=True)
         return Response(serializer.data)
 
     elif request.method == 'POST':
         serializer = TaskSerializer(data=request.data)
         if serializer.is_valid():
             group = serializer.validated_data.get('group')
-            # Check if a group was provided and if the user is a member of it
-            if group: # If a group is specified
+            if group:
                 if request.user not in group.members.all():
                     return Response({'error': 'You do not have permission to add tasks to this group.'},
                                     status=status.HTTP_403_FORBIDDEN)
-            # Save the task, associating it with the creating user
             serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -44,27 +60,16 @@ def task_detail(request, pk):
     Retrieve, update, or delete a task.
     """
     try:
-        task = Task.objects.get(pk=pk) # <-- CHANGED: Fetch task by PK first
+        task = Task.objects.get(pk=pk)
     except Task.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
-
-    # NOW, check object-level permission using the decorator's logic
-    # This will use IsOwnerOrReadOnly to determine if the user has rights for GET, PUT, or DELETE.
-    # The permission_classes decorator automatically calls check_object_permissions for us
-    # if the view is a class-based view or if the request method requires it.
-    # For function-based views, DRF needs a little help to explicitly check object permissions.
-    # The @permission_classes decorator on @api_view handles it implicitly for basic cases,
-    # but for `has_object_permission`, we need to ensure the permission class is invoked.
-    # For simplicity with function-based views, DRF's @permission_classes usually works fine
-    # once the object is retrieved, as long as `request.user` is available.
-    # The key fix here is removing the `user=request.user` from the `.get()`
 
     if request.method == 'GET':
         serializer = TaskSerializer(task)
         return Response(serializer.data)
 
     elif request.method == 'PUT':
-        serializer = TaskSerializer(task, data=request.data, partial=True)
+        serializer = TaskSerializer(task, data=request.data) # Changed partial=True to allow full updates
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -81,7 +86,7 @@ def group_list(request):
     List all groups for the authenticated user, or create a new group.
     """
     if request.method == 'GET':
-        groups = Group.objects.filter(members=request.user).distinct() # Use distinct to avoid duplicates if user is added multiple ways
+        groups = Group.objects.filter(members=request.user).distinct()
         serializer = GroupSerializer(groups, many=True)
         return Response(serializer.data)
 
