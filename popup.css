@@ -1,73 +1,307 @@
+/* General Body Styles */
 body {
-    width: 300px;
-    font-family: Arial, sans-serif;
-    background-color: #fff;
-    color: #333;
-    padding: 15px;
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif; /* Professional sans-serif font */
+    width: 380px; /* ✨ ADJUSTED: Increased width for more space */
+    background-color: #f8f8f8; /* Light grey background */
+    margin: 0;
+    padding: 20px;
+    color: #333; /* Dark grey for general text */
+    box-sizing: border-box; /* Include padding in width calculation */
+    overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
-h1 {
-    font-size: 24px;
-    color: #e67e22;
-}
-
-ul {
-    list-style-type: none;
-    padding: 0;
-}
-
-li {
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    padding: 10px;
-    margin-bottom: 8px;
+/* Header Styles */
+#header {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column; /* Stack items vertically */
+    align-items: center; /* Center items horizontally */
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee; /* Subtle separator */
 }
 
-button {
-    background-color: #3498db;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 7px;
-    cursor: pointer;
-}
-
-button:hover {
-    background-color: #7ad3f9;
-}
-
-input[type="text"]{
-    width: 100%;
-    padding: 8px;
+#header img {
+    width: 100px; /* Adjust logo size */
     margin-bottom: 10px;
-    box-sizing: border-box;
-    border: 1px solid #ddd;
-    border-radius: 4px;
 }
 
-.remove-btn {
-    background-color: transparent;
-    border: none;
-    color: #e74c3c;
-    font-weight: bold;
+#header h1 {
+    font-size: 24px;
+    color: #2c3e50; /* Darker blue/grey for main title */
+    margin: 0;
+    font-weight: 600;
+}
+
+/* Group Selector */
+#group-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* ✨ ADJUSTED: Increased space between group elements */
+    margin-top: 15px;
+    width: 100%;
+    justify-content: center; /* Center group selector horizontally */
+}
+
+#group-selector label {
+    font-size: 14px;
+    color: #555;
+    font-weight: 500;
+    flex-shrink: 0; /* Prevent label from shrinking */
+}
+
+#group-dropdown {
+    flex-grow: 1; /* Allow dropdown to take available space */
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: #fff;
+    font-size: 14px;
+    color: #333;
+    appearance: none; /* Remove default dropdown arrow */
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23666%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13.2-5.4H18.8c-7.7%200-13.5%204.3-13.2%205.4L146.4%20247.7c6.1%206.1%2017.7%206.1%2023.8%200L287%2069.4z%22%2F%3E%3C%2Fsvg%3E'); /* Custom dropdown arrow */
+    background-repeat: no-repeat;
+    background-position: right 12px center; /* ✨ ADJUSTED: Moved arrow slightly to the left */
+    background-size: 10px;
     cursor: pointer;
-    margin-left: 10px;
+    max-width: 150px; /* Limit width of dropdown */
 }
 
-.task-text.completed {
-    text-decoration: line-through;
-    color: #888;
+/* Buttons */
+button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    white-space: nowrap; /* Prevent text wrap */
 }
+
+#login-btn,
+#add-task-btn {
+    background-color: #4CAF50; /* Green for primary actions */
+    color: white;
+    width: 100%; /* Full width for login/add task */
+    margin-top: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+#login-btn:hover,
+#add-task-btn:hover {
+    background-color: #45a049;
+    transform: translateY(-1px);
+}
+
+#add-group-btn {
+    background-color: #007bff; /* Blue for add group */
+    color: white;
+    padding: 8px 12px; /* Smaller padding for + button */
+    font-size: 16px;
+}
+
+#add-group-btn:hover {
+    background-color: #0056b3;
+    transform: translateY(-1px);
+}
+
+#delete-group-btn {
+    background-color: #dc3545; /* Red for delete group */
+    color: white;
+    padding: 8px 12px; /* Smaller padding for x button */
+    font-size: 16px;
+}
+
+#delete-group-btn:hover {
+    background-color: #c82333;
+    transform: translateY(-1px);
+}
+
+#logout-btn {
+    background-color: #6c757d; /* Grey for logout */
+    color: white;
+    margin-top: 20px;
+    width: 100%; /* Full width for logout button */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+#logout-btn:hover {
+    background-color: #5a6268;
+    transform: translateY(-1px);
+}
+
+/* Input Fields */
+input[type="text"],
+input[type="password"] {
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #333;
+    box-sizing: border-box;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+    transition: border-color 0.2s ease;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus {
+    border-color: #80bdff;
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+/* Login Form */
+#login-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #fff;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    margin-top: 30px; /* Push login form down slightly */
+}
+
+#login-form h1 {
+    color: #36657c;
+    font-size: 28px;
+    margin-bottom: 10px;
+    font-weight: 700;
+    /* Add this line */
+    font-family: 'Pacifico', sans-serif;
+    text-align: center;
+}
+
+#login-form h2 {
+    color: #555;
+    font-size: 18px;
+    margin-bottom: 20px;
+    font-weight: 400;
+}
+
+/* Task Manager */
+#task-manager {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+/* Task List */
+#task-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+    max-height: 250px; /* Limit height for scrollability */
+    overflow-y: auto; /* Enable vertical scrolling */
+    border-top: 1px solid #eee; /* Separator for task list */
+    padding-top: 15px;
+}
+
+#task-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+#task-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+#task-list::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+#task-list::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
 li {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px; /* Space between checkbox, text, and button */
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 15px;
+    color: #333;
+    position: relative; /* For the edit input positioning */
+}
+
+li:last-child {
+    border-bottom: none;
 }
 
 .task-checkbox {
     cursor: pointer;
+    width: 18px;
+    height: 18px;
+    min-width: 18px; /* Ensure checkbox doesn't shrink */
+    min-height: 18px;
+    accent-color: #36657c; /* Use logo color for checkbox */
+}
+
+.task-text {
+    flex-grow: 1;
+    cursor: pointer;
+    padding: 2px 0;
+    word-break: break-word; /* Allow long words to break */
+}
+
+.task-text.completed {
+    text-decoration: line-through;
+    color: #888; /* Lighter grey for completed tasks */
+    font-style: italic;
+    transition: color 0.3s ease;
+}
+
+.remove-btn {
+    background-color: #e0e0e0;
+    color: #666;
+    padding: 5px 8px;
+    border-radius: 50%; /* Circular button */
+    font-size: 12px;
+    line-height: 1; /* Center 'x' vertically */
+    height: 24px; /* Fixed height for circle */
+    width: 24px; /* Fixed width for circle */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.remove-btn:hover {
+    background-color: #dc3545; /* Red on hover for delete */
+    color: white;
+}
+
+/* Task Input Container */
+#task-input-container {
+    display: flex;
+    gap: 12px; /* ✨ ADJUSTED: Increased space between input and button */
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+#task-input-container input {
+    flex-grow: 1;
+    margin-bottom: 0; /* Override default input margin */
+}
+
+#task-input-container button {
+    flex-shrink: 0;
+    width: auto; /* Allow button to size content */
+}
+
+/* Edit Task Input (when task is being edited) */
+.edit-task-input {
+    flex-grow: 1;
+    padding: 5px 8px;
+    border: 1px solid #007bff; /* Highlight editing input */
+    border-radius: 4px;
+    font-size: 15px;
+    box-shadow: 0 0 0 0.1rem rgba(0,123,255,.25);
+    margin: -2px 0; /* Adjust to align with line height */
 }

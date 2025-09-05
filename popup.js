@@ -26,6 +26,11 @@ function getToken() {
 }
 
 // Helper function to create a task element with a checkbox and remove button
+
+
+// ... (rest of your code) ...
+
+// Helper function to create a task element with a checkbox and remove button
 function createTaskElement(task) {
   const newTask = document.createElement('li');
 
@@ -84,7 +89,9 @@ function createTaskElement(task) {
 
 function handleCompleteTask(task, checkboxElement) {
     const isCompleted = checkboxElement.checked;
-    const taskSpanElement = checkboxElement.nextElementSibling;
+    // ✨ UPDATED: Find the parent <li> and then the span element reliably
+    const listItem = checkboxElement.closest('li');
+    const taskSpanElement = listItem.querySelector('.task-text');
     
     getToken().then(token => {
         const dataToUpdate = { 
@@ -117,10 +124,11 @@ function handleCompleteTask(task, checkboxElement) {
         }).catch(error => {
             console.error('Error completing task:', error);
             alert('Failed to update task completion status. Error: ' + error.message);
-            checkboxElement.checked = !isCompleted;
+            checkboxElement.checked = !isCompleted; // Revert checkbox state on error
         });
     });
 }
+
 
 function activateTaskEdit(task, taskSpanElement) {
     if (taskSpanElement.querySelector('input')) {
