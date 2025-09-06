@@ -98,6 +98,8 @@ button {
     color: white;
     padding: 8px 12px; /* Smaller padding for + button */
     font-size: 16px;
+    border-radius: 20px;
+
 }
 
 #add-group-btn:hover {
@@ -110,6 +112,7 @@ button {
     color: white;
     padding: 8px 12px; /* Smaller padding for x button */
     font-size: 16px;
+    border-radius: 20px;
 }
 
 #delete-group-btn:hover {
