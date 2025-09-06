@@ -17,6 +17,10 @@
         "http://127.0.0.1:8000/",
         "http://127.0.0.1:8000/api/tasks/",
         "http://127.0.0.1:8000/api/api-token-auth/"
-]
+    ], 
+    "web_accessible_resources": [{
+        "resources": ["styles.css", "images/*"],
+        "matches": ["<all_urls>"]
+    }]
 
 }

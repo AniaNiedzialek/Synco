@@ -7,7 +7,7 @@ body {
     padding: 20px;
     color: #333; /* Dark grey for general text */
     box-sizing: border-box; /* Include padding in width calculation */
-    overflow-x: hidden; /* Prevent horizontal scroll */
+    overflow-y: hidden; /* Prevent horizontal scroll */
 }
 
 /* Header Styles */
@@ -157,20 +157,23 @@ input[type="password"]:focus {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center; /* Center content vertically */
+    height: 100vh; /* Take up the full height of the viewport */
     background-color: #fff;
-    padding: 25px;
+    padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-    margin-top: 30px; /* Push login form down slightly */
+    /* max-width: 300px; */
+    margin: 0 auto;
 }
 
 #login-form h1 {
     color: #36657c;
     font-size: 28px;
     margin-bottom: 10px;
-    font-weight: 700;
-    /* Add this line */
+    font-weight: 100;
     font-family: 'Pacifico', sans-serif;
+    width: 100%;
     text-align: center;
 }
 
@@ -304,4 +307,25 @@ li:last-child {
     font-size: 15px;
     box-shadow: 0 0 0 0.1rem rgba(0,123,255,.25);
     margin: -2px 0; /* Adjust to align with line height */
+}
+
+/* Splash Video & Animation Styles */
+#splash-video {
+    width: 100%;
+    max-width: 300px;
+    border-radius: 150px;
+    max-height: 300px;
+    object-fit: cover;
+}
+.hidden-element {
+    display: none !important;
+}
+
+.fade-in {
+    animation: fadeIn 1s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }

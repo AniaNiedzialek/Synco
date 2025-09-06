@@ -10,7 +10,7 @@ let taskInput;
 let taskList;
 let groupDropdown;
 let addGroupBtn;
-let deleteGroupBtn; // ✨ New variable for the delete group button ✨
+let deleteGroupBtn;
 let logoutBtn;
 
 // The base URL of our Django API.
@@ -24,11 +24,6 @@ function getToken() {
     });
   });
 }
-
-// Helper function to create a task element with a checkbox and remove button
-
-
-// ... (rest of your code) ...
 
 // Helper function to create a task element with a checkbox and remove button
 function createTaskElement(task) {
@@ -89,9 +84,7 @@ function createTaskElement(task) {
 
 function handleCompleteTask(task, checkboxElement) {
     const isCompleted = checkboxElement.checked;
-    // ✨ UPDATED: Find the parent <li> and then the span element reliably
-    const listItem = checkboxElement.closest('li');
-    const taskSpanElement = listItem.querySelector('.task-text');
+    const taskSpanElement = checkboxElement.nextElementSibling;
     
     getToken().then(token => {
         const dataToUpdate = { 
@@ -204,7 +197,7 @@ function loadTasks() {
   getToken().then(token => {
     if (!token) {
       if (loginForm && taskManager) {
-        loginForm.style.display = 'block';
+        loginForm.style.display = 'flex';
         taskManager.style.display = 'none';
       }
       return;
@@ -227,7 +220,7 @@ function loadTasks() {
       if (response.status === 401) {
         chrome.storage.sync.set({ 'authToken': null }, () => {
           if (loginForm && taskManager) {
-            loginForm.style.display = 'block';
+            loginForm.style.display = 'flex';
             taskManager.style.display = 'none';
           }
           alert("Your session has expired. Please log in again.");
@@ -250,7 +243,7 @@ function loadTasks() {
       if (error !== 'Unauthorized') {
         alert('Error loading tasks. Please try logging in again.');
         if (loginForm && taskManager) {
-          loginForm.style.display = 'block';
+          loginForm.style.display = 'flex';
           taskManager.style.display = 'none';
         }
       }
@@ -324,7 +317,6 @@ function handleLogin() {
     });
 }
 
-// ✨ NEW FUNCTION: Handles group deletion ✨
 function handleDeleteGroup() {
     const selectedGroupId = groupDropdown.value;
     const selectedGroupName = groupDropdown.options[groupDropdown.selectedIndex].text;
@@ -360,7 +352,6 @@ function handleDeleteGroup() {
         });
     });
 }
-// ✨ END OF NEW FUNCTION ✨
 
 function handleLogout() {
     chrome.storage.sync.set({ 'authToken': null }, () => {
@@ -368,7 +359,7 @@ function handleLogout() {
             taskList.innerHTML = '';
         }
         if (loginForm && taskManager) {
-            loginForm.style.display = 'block';
+            loginForm.style.display = 'flex';
             taskManager.style.display = 'none';
         }
         alert("You have been logged out.");
@@ -459,42 +450,51 @@ function handleAddGroup() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  loginForm = document.getElementById('login-form');
-  usernameInput = document.getElementById('username');
-  passwordInput = document.getElementById('password');
-  loginBtn = document.getElementById('login-btn');
+    // Get all HTML element references on load
+    loginForm = document.getElementById('login-form');
+    usernameInput = document.getElementById('username');
+    passwordInput = document.getElementById('password');
+    loginBtn = document.getElementById('login-btn');
+    taskManager = document.getElementById('task-manager');
+    addTaskBtn = document.getElementById('add-task-btn');
+    taskInput = document.getElementById('task-input');
+    taskList = document.getElementById('task-list');
+    groupDropdown = document.getElementById('group-dropdown');
+    addGroupBtn = document.getElementById('add-group-btn');
+    deleteGroupBtn = document.getElementById('delete-group-btn');
+    logoutBtn = document.getElementById('logout-btn');
+    const splashVideo = document.getElementById('splash-video');
+    const welcomeText = loginForm.querySelector('h1');
 
-  taskManager = document.getElementById('task-manager');
-  addTaskBtn = document.getElementById('add-task-btn');
-  taskInput = document.getElementById('task-input');
-  taskList = document.getElementById('task-list');
-  groupDropdown = document.getElementById('group-dropdown');
-  addGroupBtn = document.getElementById('add-group-btn');
-  deleteGroupBtn = document.getElementById('delete-group-btn'); // ✨ Get a reference to the new button ✨
-  logoutBtn = document.getElementById('logout-btn');
+    // Attach all event listeners
+    if (loginBtn) loginBtn.addEventListener('click', handleLogin);
+    if (addTaskBtn) addTaskBtn.addEventListener('click', handleAddTask);
+    if (addGroupBtn) addGroupBtn.addEventListener('click', handleAddGroup);
+    if (groupDropdown) groupDropdown.addEventListener('change', () => loadTasks());
+    if (deleteGroupBtn) deleteGroupBtn.addEventListener('click', handleDeleteGroup);
+    if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
 
-  if (loginBtn) loginBtn.addEventListener('click', handleLogin);
-  if (addTaskBtn) addTaskBtn.addEventListener('click', handleAddTask);
-  if (addGroupBtn) addGroupBtn.addEventListener('click', handleAddGroup);
-  if (groupDropdown) groupDropdown.addEventListener('change', () => loadTasks());
-  if (deleteGroupBtn) deleteGroupBtn.addEventListener('click', handleDeleteGroup); // ✨ Add the new event listener ✨
-  if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
-
-  chrome.storage.sync.set({ 'authToken': null }, () => {
+    // Initial check for a stored token
     getToken().then(token => {
-      if (token) {
-        if (loginForm && taskManager) {
-          loginForm.style.display = 'none';
-          taskManager.style.display = 'block';
+        if (token) {
+            // User is already logged in, show the task manager
+            if (loginForm) loginForm.style.display = 'none';
+            if (taskManager) taskManager.style.display = 'block';
+            loadGroups();
+            loadTasks();
+        } else {
+            // No token found, show the login form
+            if (loginForm) loginForm.style.display = 'flex';
+            if (taskManager) taskManager.style.display = 'none';
+
+            // Ensure the video is visible and playing when the login form is shown
+            if (splashVideo) {
+                splashVideo.play().catch(error => {
+                    console.warn("Video autoplay prevented:", error);
+                });
+            }
+            // All other login form elements are visible by default
+            // since there's no code to hide them initially in this block.
         }
-        loadGroups();
-        loadTasks();
-      } else {
-        if (loginForm && taskManager) {
-          loginForm.style.display = 'block';
-          taskManager.style.display = 'none';
-        }
-      }
     });
-  });
 });
