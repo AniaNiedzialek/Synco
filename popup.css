@@ -4,10 +4,10 @@ body {
     width: 380px; /* ✨ ADJUSTED: Increased width for more space */
     background-color: #f8f8f8; /* Light grey background */
     margin: 0;
-    padding: 20px;
+    padding: 10px;
     color: #333; /* Dark grey for general text */
     box-sizing: border-box; /* Include padding in width calculation */
-    overflow-y: hidden; /* Prevent horizontal scroll */
+    overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
 /* Header Styles */
@@ -159,11 +159,12 @@ input[type="password"]:focus {
     align-items: center;
     justify-content: center; /* Center content vertically */
     height: 100vh; /* Take up the full height of the viewport */
+    height: 100%;
     background-color: #fff;
-    padding: 20px;
+    padding: 15px;
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-    /* max-width: 300px; */
+    max-width: 300px;
     margin: 0 auto;
 }
 
@@ -311,6 +312,7 @@ li:last-child {
 
 /* Splash Video & Animation Styles */
 #splash-video {
+    margin-bottom:10px;
     width: 100%;
     max-width: 300px;
     border-radius: 150px;
