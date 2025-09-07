@@ -55,7 +55,6 @@ body {
     gap: 5px; /* Adjust spacing between dropdown and buttons */
 }
 
-
 #group-dropdown {
     padding: 8px 30px 8px 10px; /* ✨ ADJUSTED: Increased padding-right for arrow space */
     border: 1px solid #333;

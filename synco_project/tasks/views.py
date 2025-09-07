@@ -1,11 +1,12 @@
+from django.contrib.auth.models import User # ✨ NEW IMPORT
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny # ✨ UPDATED IMPORT
 from .models import Task, Group
 from .serializers import TaskSerializer, GroupSerializer
-from .permissions import IsOwnerOrReadOnly # Assuming you have this for tasks
-from django.db.models import Q # Import the Q object for complex lookups
+from .permissions import IsOwnerOrReadOnly
+from django.db.models import Q
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
@@ -14,26 +15,19 @@ def task_list(request):
     List tasks based on group selection, or create a new task.
     """
     if request.method == 'GET':
-        # ✨ THE FIX: Check for filtering parameters from the URL
         group_id = request.query_params.get('group')
         is_personal_group = request.query_params.get('group__isnull') == 'True'
 
         if is_personal_group:
-            # If "Personal" group is selected, show only tasks with a null group
             tasks = Task.objects.filter(user=request.user, group__isnull=True)
         elif group_id:
-            # If a specific group is selected, filter by that group's ID
-            # Also, ensure the user is a member of that group for security
             try:
-                # This ensures the user is a member before showing the tasks
                 group = Group.objects.get(id=group_id, members=request.user)
                 tasks = Task.objects.filter(group=group)
             except Group.DoesNotExist:
                 return Response({"error": "Group not found or you are not a member."},
                                 status=status.HTTP_404_NOT_FOUND)
         else:
-            # Default case (if no filter is applied)
-            # Combine personal tasks and tasks from groups the user is a member of
             personal_tasks = Task.objects.filter(user=request.user, group__isnull=True)
             group_tasks = Task.objects.filter(group__members=request.user)
             tasks = (personal_tasks | group_tasks).distinct()
@@ -98,8 +92,6 @@ def group_list(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-# ✨ ADD THIS NEW VIEW FUNCTION TO YOUR FILE ✨
 @api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def group_detail(request, pk):
@@ -113,7 +105,6 @@ def group_detail(request, pk):
     except Group.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
-    # Security check: Only members of the group can view/edit/delete it
     if request.user not in group.members.all():
         return Response({'error': 'You do not have permission to access this group.'},
                         status=status.HTTP_403_FORBIDDEN)
@@ -132,3 +123,19 @@ def group_detail(request, pk):
     elif request.method == 'DELETE':
         group.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+# ✨ NEW: User Registration View ✨
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def register_user(request):
+    username = request.data.get('username')
+    password = request.data.get('password')
+    if not username or not password:
+        return Response({'error': 'Username and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    if User.objects.filter(username=username).exists():
+        return Response({'error': 'Username already exists.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    user = User.objects.create_user(username=username, password=password)
+    user.save()
+    return Response({'message': 'User created successfully.'}, status=status.HTTP_201_CREATED)
