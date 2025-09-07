@@ -452,3 +452,150 @@ body {
     width: 100%;
     text-align: center;
 }
+
+/* ✨ NEW: Styles for the Manage Members button */
+#manage-members-btn {
+    background-color: #c0d3dc; /* Blue color for manage members */
+    color: white;
+    padding: 8px 12px;
+    font-size: 16px;
+    border-radius: 20px;
+}
+
+#manage-members-btn:hover {
+    background-color: #2a5165;
+    transform: translateY(-1px);
+}
+
+/* ✨ NEW: Styles for the Group Members Modal */
+.modal {
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    display: flex; /* Use flex to center content */
+    align-items: center; /* Center vertically */
+    justify-content: center; /* Center horizontally */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    padding: 20px;
+    border: 1px solid #888;
+    border-radius: 8px;
+    width: 80%; /* Could be a fixed width like 300px */
+    max-width: 350px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    color: #36657c;
+    font-size: 22px;
+    text-align: center;
+}
+
+.modal-content h3 {
+    margin: -10px 0 10px;
+    font-size: 18px;
+    color: #555;
+    text-align: center;
+}
+
+.close-button {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    cursor: pointer;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.member-input-section {
+    display: flex;
+    gap: 10px;
+}
+
+.member-input-section input[type="text"] {
+    flex-grow: 1;
+    margin-bottom: 0; /* Override default input margin */
+}
+
+#add-member-btn {
+    background-color: #4CAF50; /* Green */
+    color: white;
+    padding: 8px 15px;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+#add-member-btn:hover {
+    background-color: #45a049;
+}
+
+#group-members-list {
+    list-style: none;
+    padding: 0;
+    max-height: 150px;
+    overflow-y: auto;
+    border-top: 1px solid #eee;
+    padding-top: 10px;
+}
+
+#group-members-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px dotted #eee;
+    font-size: 14px;
+    color: #333;
+}
+
+#group-members-list li:last-child {
+    border-bottom: none;
+}
+
+.remove-member-btn {
+    background-color: #e0e0e0;
+    color: #666;
+    padding: 4px 7px;
+    border-radius: 50%;
+    font-size: 10px;
+    line-height: 1;
+    height: 20px;
+    width: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.remove-member-btn:hover {
+    background-color: #dc3545;
+    color: white;
+}
+
+.error-message {
+    color: #dc3545;
+    font-size: 13px;
+    text-align: center;
+    margin-top: 10px;
+}

@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>SYINCO</title>
-    <link rel="stylesheet" href="popup.css">
+    <meta charset="UTF-8"> <link rel="stylesheet" href="popup.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
@@ -24,7 +24,6 @@
         <button id="submit-login-btn">Log In</button>
         <span id="back-to-main">Back</span>
     </div>
-
     <div id="signup-form" class="hidden-element">
         <h2>Sign Up</h2>
         <input type="text" id="signup-username" placeholder="Username">
@@ -40,7 +39,7 @@
                 <select id="group-dropdown"></select>
                 <button id="add-group-btn">+</button>
                 <button id="delete-group-btn">x</button>
-            </div>
+                <button id="manage-members-btn" title="Manage Group Members">👥</button> </div>
             <button id="logout-btn">Logout</button>
         </div>
         <div id="input-container">
@@ -49,6 +48,22 @@
         </div>
         <ul id="task-list"></ul>
     </div>
+
+    <div id="group-members-modal" class="modal hidden-element">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Manage Group Members</h2>
+            <h3 id="modal-group-name"></h3>
+            <div class="member-input-section">
+                <input type="text" id="member-username-input" placeholder="Enter username">
+                <button id="add-member-btn">Add Member</button>
+            </div>
+            <ul id="group-members-list">
+                </ul>
+            <p id="group-members-error" class="error-message hidden-element"></p>
+        </div>
+    </div>
+    
     <script src="popup.js"></script>
 </body>
 </html>

@@ -1,11 +1,11 @@
-from django.contrib.auth.models import User # ✨ NEW IMPORT
+from django.contrib.auth.models import User
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated, AllowAny # ✨ UPDATED IMPORT
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import Task, Group
 from .serializers import TaskSerializer, GroupSerializer
-from .permissions import IsOwnerOrReadOnly
+from .permissions import IsOwnerOrReadOnly  
 from django.db.models import Q
 
 @api_view(['GET', 'POST'])
@@ -97,8 +97,7 @@ def group_list(request):
 def group_detail(request, pk):
     """
     Retrieve, update, or delete a group.
-    Only group members can access. Only the creator (or an admin) could delete.
-    For simplicity, we'll allow any member to delete for now.
+    Only group members can access.
     """
     try:
         group = Group.objects.get(pk=pk)
@@ -124,7 +123,7 @@ def group_detail(request, pk):
         group.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-# ✨ NEW: User Registration View ✨
+# New: User Registration View
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register_user(request):
@@ -139,3 +138,38 @@ def register_user(request):
     user = User.objects.create_user(username=username, password=password)
     user.save()
     return Response({'message': 'User created successfully.'}, status=status.HTTP_201_CREATED)
+
+# New: Group Members Management View
+@api_view(['POST', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def group_members(request, pk):
+    try:
+        group = Group.objects.get(pk=pk)
+    except Group.DoesNotExist:
+        return Response({'error': 'Group not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.user not in group.members.all():
+        return Response({'error': 'You do not have permission to modify this group.'},
+                        status=status.HTTP_403_FORBIDDEN)
+
+    username = request.data.get('username')
+    if not username:
+        return Response({'error': 'Username is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        member_to_modify = User.objects.get(username=username)
+    except User.DoesNotExist:
+        return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'POST':
+        group.members.add(member_to_modify)
+        return Response({'message': f'User "{username}" added to group successfully.'},
+                        status=status.HTTP_200_OK)
+
+    elif request.method == 'DELETE':
+        if member_to_modify == request.user:
+            return Response({'error': 'You cannot remove yourself from a group this way.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        group.members.remove(member_to_modify)
+        return Response({'message': f'User "{username}" removed from group successfully.'},
+                        status=status.HTTP_200_OK)
