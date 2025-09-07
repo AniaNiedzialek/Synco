@@ -106,9 +106,9 @@ button {
 #add-group-btn {
     background-color: #007bff; /* Blue for add group */
     color: white;
-    padding: 8px 12px; /* Smaller padding for + button */
-    font-size: 16px;
-    border-radius: 20px;
+    padding: 6px 6px; /* Smaller padding for + button */
+    font-size: 12px;
+    border-radius: 30px;
 
 }
 
@@ -120,9 +120,9 @@ button {
 #delete-group-btn {
     background-color: #dc3545; /* Red for delete group */
     color: white;
-    padding: 8px 12px; /* Smaller padding for x button */
-    font-size: 16px;
-    border-radius: 20px;
+    padding: 6px 6px; /* Smaller padding for + button */
+    font-size: 12px;
+    border-radius: 30px;
 }
 
 #delete-group-btn:hover {
