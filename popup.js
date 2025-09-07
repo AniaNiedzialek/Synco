@@ -290,7 +290,6 @@ function handleGroupChange() {
     });
 }
 
-// Data Fetching and Display
 function loadGroups() {
     getToken().then(token => {
         fetch(`${API_URL}groups/`, {
@@ -309,7 +308,7 @@ function loadGroups() {
             groups.forEach(group => {
                 const option = document.createElement('option');
                 option.value = group.id;
-                option.textContent = group.name;
+                option.textContent = group.name; // ✨ Use group.name for display
                 groupDropdown.appendChild(option);
             });
             chrome.storage.local.get([SELECTED_GROUP_KEY], function(result) {
@@ -327,6 +326,7 @@ function loadGroups() {
         showMainForm();
     });
 }
+
 
 function loadTasks() {
     const selectedGroupId = groupDropdown.value;

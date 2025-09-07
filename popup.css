@@ -268,7 +268,7 @@ li:last-child {
 
 .task-text.completed {
     text-decoration: line-through;
-    color: #888; /* Lighter grey for completed tasks */
+    color: #888;
     font-style: italic;
     transition: color 0.3s ease;
 }
