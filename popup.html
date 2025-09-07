@@ -1,39 +1,54 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <link rel="stylesheet" href="popup.css">
- 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet"></head>
-  <body>
-     <div id="login-form">
-      <video id="splash-video" src="images/animated.mp4" muted playsinline></video>
-      <!-- <p>Directing to the login page...</p> -->
-        <!-- <img src="images/logo.png" alt="Synco Logo" style="width: 125px;"> -->
-
+    <title>SYINCO</title>
+    <link rel="stylesheet" href="popup.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="main-form">
+        <video id="splash-video" src="images/animated.mp4" muted playsinline loop style="width: 300px"></video>
         <h1>Welcome to Synco</h1>
-        <input type="text" id="username" placeholder="Username">
-        <input type="password" id="password" placeholder="Password">
-        <button id="login-btn">Log In</button>
-    </div>
-    <div id="task-manager" style="display:none;">
-      <div id="header">
-        <img src="images/logo.png" alt="Synco Logo" style="width: 125px;">
-        <div id="group-selector">
-          <label for="group-dropdown">Current Group:</label>
-          <select id="group-dropdown"></select>
-          <button id="add-group-btn">+</button>
-          <button id="delete-group-btn">x</button> </div>
-        <button id="logout-btn">Log Out</button> 
-      </div>
-       
-      <ul id="task-list"></ul>
-      <div id="task-input-container">
-        <input type="text" id="task-input" placeholder="Add a new task...">
-        <button id="add-task-btn">Add NewTask</button>
+        <div id="auth-buttons">
+            <button id="login-btn">Log In</button>
+            <button id="signup-btn">Sign Up</button>
         </div>
     </div>
-    <script src="popup.js"></script> 
+    
+    <div id="login-form" class="hidden-element">
+        <h2>Log In</h2>
+        <input type="text" id="login-username" placeholder="Username">
+        <input type="password" id="login-password" placeholder="Password">
+        <button id="submit-login-btn">Log In</button>
+        <span id="back-to-main">Back</span>
+    </div>
+
+    <div id="signup-form" class="hidden-element">
+        <h2>Sign Up</h2>
+        <input type="text" id="signup-username" placeholder="Username">
+        <input type="password" id="signup-password" placeholder="Password">
+        <button id="submit-signup-btn">Sign Up</button>
+        <span id="back-to-main-2">Back</span>
+    </div>
+
+    <div id="task-manager" class="hidden-element">
+        <div id="header">
+            <img src="images/logo.png" alt="Synco Logo" class="logo">
+            <div id="group-controls">
+                <select id="group-dropdown"></select>
+                <button id="add-group-btn">+</button>
+                <button id="delete-group-btn">x</button>
+            </div>
+            <button id="logout-btn">Logout</button>
+        </div>
+        <div id="input-container">
+            <input type="text" id="task-input" placeholder="Add a new task...">
+            <button id="add-task-btn">Add Task</button>
+        </div>
+        <ul id="task-list"></ul>
+    </div>
+    <script src="popup.js"></script>
 </body>
 </html>

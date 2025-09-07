@@ -49,21 +49,32 @@ body {
     flex-shrink: 0; /* Prevent label from shrinking */
 }
 
+#group-controls {
+    display: flex;
+    align-items: center;
+    gap: 5px; /* Adjust spacing between dropdown and buttons */
+}
+
+
 #group-dropdown {
-    flex-grow: 1; /* Allow dropdown to take available space */
-    padding: 8px 10px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    background-color: #fff;
+    padding: 8px 30px 8px 10px; /* ✨ ADJUSTED: Increased padding-right for arrow space */
+    border: 1px solid #333;
+    border-radius: 5px;
+    background-color: #f9f9f9;
     font-size: 14px;
-    color: #333;
-    appearance: none; /* Remove default dropdown arrow */
-    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23666%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13.2-5.4H18.8c-7.7%200-13.5%204.3-13.2%205.4L146.4%20247.7c6.1%206.1%2017.7%206.1%2023.8%200L287%2069.4z%22%2F%3E%3C%2Fsvg%3E'); /* Custom dropdown arrow */
+    appearance: none; /* ✨ ADDED: Hides default arrow to potentially add custom one if needed, but important for padding */
+    -webkit-appearance: none; /* For Safari */
+    -moz-appearance: none; /* For Firefox */
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23888888%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-6.5%200-12.3%203.1-16.3%208.1-4%205.1-4.7%2011.6-1.7%2017.9l138%20188.8c4.3%205.6%2010.8%208.7%2017.5%208.7s13.2-3.1%2017.5-8.7l138-188.8c3-6.3%202.3-12.8-1.7-17.9z%22%2F%3E%3C%2Fsvg%3E');
     background-repeat: no-repeat;
-    background-position: right 12px center; /* ✨ ADJUSTED: Moved arrow slightly to the left */
-    background-size: 10px;
+    background-position: right 8px center; /* Position the custom arrow */
+    background-size: 7px; /* Size the custom arrow */
     cursor: pointer;
-    max-width: 150px; /* Limit width of dropdown */
+    min-width: 80px; /* ✨ ADDED: Ensure minimum width for the dropdown */
+    max-width: 150px; /* ✨ ADDED: Optional: Limit maximum width */
+    white-space: nowrap; /* Prevent text from wrapping if it gets too long */
+    overflow: hidden; /* Hide overflowing text */
+    text-overflow: ellipsis; /* Show ellipsis for overflowing text */
 }
 
 /* Buttons */
@@ -156,12 +167,12 @@ input[type="password"]:focus {
 }
 
 /* Login Form */
-#login-form {
+/* #login-form {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center; /* Center content vertically */
-    height: 100vh; /* Take up the full height of the viewport */
+    /* height: 100vh; 
     height: 100%;
     background-color: #fff;
     padding: 15px;
@@ -169,9 +180,9 @@ input[type="password"]:focus {
     box-shadow: 0 4px 10px rgba(0,0,0,0.08);
     max-width: 300px;
     margin: 0 auto;
-}
+/* } */
 
-#login-form h1 {
+/* #login-form h1 {
     color: #36657c;
     font-size: 28px;
     margin-bottom: 10px;
@@ -179,14 +190,14 @@ input[type="password"]:focus {
     font-family: 'Pacifico', sans-serif;
     width: 100%;
     text-align: center;
-}
-
+} */
+/*  
 #login-form h2 {
     color: #555;
     font-size: 18px;
     margin-bottom: 20px;
     font-weight: 400;
-}
+} */ 
 
 /* Task Manager */
 #task-manager {
@@ -333,4 +344,112 @@ li:last-child {
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
+}
+
+#auth-buttons {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-top: 15px;
+    gap: 10px;
+}
+#auth-buttons button {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    border: non;
+    border-radius: 6px;
+    transition: background-color 0.3s ease;
+}
+
+#signup-btn {
+    background-color: #f0f0f0;
+    color: #36657c;
+    border: 2px solid #36657c;
+}
+
+#signup-btn:hover {
+    background-color: #e5e5e5;
+}
+
+#login-form, #signup-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    background-color: #fff;
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+#login-form h2, #signup-form h2 {
+    color: #36657c;
+    font-size: 24px;
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+#login-form input, #signup-form input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+#submit-login-btn, #submit-signup-btn {
+    width: 100%;
+    padding: 10px;
+    background-color: #36657c;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 5px;
+}
+
+#submit-login-btn:hover, #submit-signup-btn:hover {
+    background-color: #2a5165;
+}
+
+#back-to-main, #back-to-main-2 {
+    margin-top: 15px;
+    color: #36657c;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+#back-to-main:hover, #back-to-main-2:hover {
+    text-decoration: underline;
+}
+
+/* This is the crucial class to hide elements */
+.hidden-element {
+    display: none !important;
+}
+
+/* General body style adjustment to ensure forms are centered */
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start; /* Aligns content to the top */
+    min-height: 100vh;
+}
+
+#main-form h1 {
+    color: #36657c; 
+    font-size: 28px;
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-weight: 700;
+    font-family: 'Pacifico', sans-serif;
+    width: 100%;
+    text-align: center;
 }

@@ -1,10 +1,19 @@
-// Global references for all HTML elements - declared but not assigned yet
+// Global references for all HTML elements
+let mainForm;
 let loginForm;
-let usernameInput;
-let passwordInput;
-let loginBtn;
-
+let signupForm;
 let taskManager;
+let loginBtn;
+let signupBtn;
+let submitLoginBtn;
+let submitSignupBtn;
+let backToMainBtn;
+let backToMain2Btn;
+let loginUsernameInput;
+let loginPasswordInput;
+let signupUsernameInput;
+let signupPasswordInput;
+
 let addTaskBtn;
 let taskInput;
 let taskList;
@@ -12,11 +21,10 @@ let groupDropdown;
 let addGroupBtn;
 let deleteGroupBtn;
 let logoutBtn;
+let splashVideo; // Added reference for the video element
 
-// The base URL of our Django API.
 const API_URL = 'http://127.0.0.1:8000/api/';
 
-// Helper function to get the authentication token
 function getToken() {
   return new Promise((resolve) => {
     chrome.storage.sync.get(['authToken'], (result) => {
@@ -25,10 +33,8 @@ function getToken() {
   });
 }
 
-// Helper function to create a task element with a checkbox and remove button
 function createTaskElement(task) {
   const newTask = document.createElement('li');
-
   const checkbox = document.createElement('input');
   checkbox.type = 'checkbox';
   checkbox.checked = task.completed;
@@ -39,13 +45,10 @@ function createTaskElement(task) {
   const taskSpan = document.createElement('span');
   taskSpan.textContent = task.text;
   taskSpan.classList.add('task-text');
-  
   if (task.completed) {
       taskSpan.classList.add('completed');
   }
-
   taskSpan.addEventListener('click', () => activateTaskEdit(task, taskSpan));
-
   newTask.appendChild(taskSpan);
 
   const removeBtn = document.createElement('button');
@@ -78,14 +81,12 @@ function createTaskElement(task) {
       });
     });
   });
-
   return newTask;
 }
 
 function handleCompleteTask(task, checkboxElement) {
     const isCompleted = checkboxElement.checked;
     const taskSpanElement = checkboxElement.nextElementSibling;
-    
     getToken().then(token => {
         const dataToUpdate = { 
             text: task.text,
@@ -94,7 +95,6 @@ function handleCompleteTask(task, checkboxElement) {
         if (task.group) {
             dataToUpdate.group = task.group;
         }
-
         fetch(`${API_URL}tasks/${task.id}/`, {
             method: 'PUT',
             headers: {
@@ -117,27 +117,23 @@ function handleCompleteTask(task, checkboxElement) {
         }).catch(error => {
             console.error('Error completing task:', error);
             alert('Failed to update task completion status. Error: ' + error.message);
-            checkboxElement.checked = !isCompleted; // Revert checkbox state on error
+            checkboxElement.checked = !isCompleted; 
         });
     });
 }
-
 
 function activateTaskEdit(task, taskSpanElement) {
     if (taskSpanElement.querySelector('input')) {
         return; 
     }
-
     const originalText = task.text;
     const inputField = document.createElement('input');
     inputField.type = 'text';
     inputField.value = originalText;
     inputField.classList.add('edit-task-input'); 
-
     taskSpanElement.replaceChildren(inputField);
     inputField.focus(); 
     inputField.select(); 
-
     const saveEdit = () => {
         const newText = inputField.value.trim();
         if (newText === '') {
@@ -150,7 +146,6 @@ function activateTaskEdit(task, taskSpanElement) {
             taskSpanElement.textContent = originalText;
             return;
         }
-
         getToken().then(token => {
             const dataToUpdate = { 
                 text: newText,
@@ -159,7 +154,6 @@ function activateTaskEdit(task, taskSpanElement) {
             if (task.group) {
                 dataToUpdate.group = task.group;
             }
-
             fetch(`${API_URL}tasks/${task.id}/`, {
                 method: 'PUT',
                 headers: {
@@ -183,9 +177,7 @@ function activateTaskEdit(task, taskSpanElement) {
             });
         });
     };
-
     inputField.addEventListener('blur', saveEdit);
-
     inputField.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             inputField.blur();
@@ -196,10 +188,7 @@ function activateTaskEdit(task, taskSpanElement) {
 function loadTasks() {
   getToken().then(token => {
     if (!token) {
-      if (loginForm && taskManager) {
-        loginForm.style.display = 'flex';
-        taskManager.style.display = 'none';
-      }
+      showMainScreen(); // Show main screen if token is somehow lost
       return;
     }
     
@@ -210,7 +199,6 @@ function loadTasks() {
     } else {
       url += `?group__isnull=True`;
     }
-
     fetch(url, {
       headers: {
         'Authorization': `Token ${token}`
@@ -219,10 +207,7 @@ function loadTasks() {
     .then(response => {
       if (response.status === 401) {
         chrome.storage.sync.set({ 'authToken': null }, () => {
-          if (loginForm && taskManager) {
-            loginForm.style.display = 'flex';
-            taskManager.style.display = 'none';
-          }
+          showMainScreen();
           alert("Your session has expired. Please log in again.");
         });
         return Promise.reject('Unauthorized');
@@ -242,10 +227,7 @@ function loadTasks() {
       console.error('Error loading tasks:', error);
       if (error !== 'Unauthorized') {
         alert('Error loading tasks. Please try logging in again.');
-        if (loginForm && taskManager) {
-          loginForm.style.display = 'flex';
-          taskManager.style.display = 'none';
-        }
+        showMainScreen();
       }
     });
   });
@@ -254,7 +236,6 @@ function loadTasks() {
 function loadGroups() {
   getToken().then(token => {
     if (!token) return;
-
     fetch(`${API_URL}groups/`, {
       headers: {
         'Authorization': `Token ${token}`
@@ -268,7 +249,6 @@ function loadGroups() {
         personalOption.value = '';
         personalOption.textContent = 'Personal';
         groupDropdown.appendChild(personalOption);
-
         groups.forEach(group => {
           const option = document.createElement('option');
           option.value = group.id;
@@ -282,10 +262,10 @@ function loadGroups() {
   });
 }
 
-function handleLogin() {
-  const username = usernameInput.value;
-  const password = passwordInput.value;
-
+function handleLogin(event) {
+  event.preventDefault();
+  const username = loginUsernameInput.value;
+  const password = loginPasswordInput.value;
   fetch(`http://127.0.0.1:8000/api/api-token-auth/`, {
     method: 'POST',
     headers: {
@@ -299,37 +279,87 @@ function handleLogin() {
     }
     return response.json();
   })
-    .then(data => {
-      if (data.token) {
-        chrome.storage.sync.set({ 'authToken': data.token }, () => {
-          if (loginForm && taskManager) {
-            loginForm.style.display = 'none';
-            taskManager.style.display = 'block';
-          }
-          loadGroups();
-          loadTasks();
-        });
+  .then(data => {
+    if (data.token) {
+      chrome.storage.sync.set({ 'authToken': data.token }, () => {
+        // Clear inputs after successful login
+        loginUsernameInput.value = '';
+        loginPasswordInput.value = '';
+        
+        // Correctly show task manager and hide others
+        mainForm.classList.add('hidden-element');
+        loginForm.classList.add('hidden-element');
+        signupForm.classList.add('hidden-element');
+        taskManager.classList.remove('hidden-element');
+
+        loadGroups();
+        loadTasks();
+      });
+    }
+  })
+  .catch(error => {
+    console.error('Error during login:', error);
+    alert('Network error during login. Is the server running?');
+  });
+}
+
+function handleRegister(event) {
+  event.preventDefault();
+  const username = signupUsernameInput.value;
+  const password = signupPasswordInput.value;
+
+  if (!username || !password) {
+      alert("Username and password cannot be empty.");
+      return;
+  }
+
+  fetch(`${API_URL}register/`, { // Assuming you create a /api/register/ endpoint
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ username, password })
+  }).then(response => {
+      if (response.status === 400) {
+          return response.json().then(err => {
+              let errorMsg = "Registration failed.";
+              if (err.username) errorMsg += ` Username: ${err.username.join(', ')}`;
+              if (err.password) errorMsg += ` Password: ${err.password.join(', ')}`;
+              alert(errorMsg);
+              return Promise.reject('Registration validation failed');
+          });
       }
-    })
-    .catch(error => {
-        console.error('Error during login:', error);
-        alert('Network error during login. Is the server running?');
-    });
+      if (!response.ok) {
+          alert('Registration failed. Please try again.');
+          return Promise.reject('Registration failed with status: ' + response.status);
+      }
+      return response.json();
+  })
+  .then(data => {
+      alert(`User "${username}" registered successfully! Please log in.`);
+      // After successful registration, direct them to the login form
+      signupUsernameInput.value = '';
+      signupPasswordInput.value = '';
+      showLoginForm(); 
+  })
+  .catch(error => {
+      console.error('Error during registration:', error);
+      if (error.message && error.message.includes('Failed to fetch')) {
+        alert('Network error during registration. Is the Django server running and has a /api/register/ endpoint?');
+      }
+  });
 }
 
 function handleDeleteGroup() {
     const selectedGroupId = groupDropdown.value;
     const selectedGroupName = groupDropdown.options[groupDropdown.selectedIndex].text;
-    
     if (!selectedGroupId) {
         alert('Cannot delete the "Personal" group.');
         return;
     }
-
     if (!confirm(`Are you sure you want to delete the group "${selectedGroupName}"? This will delete all tasks within it.`)) {
         return;
     }
-
     getToken().then(token => {
         fetch(`${API_URL}groups/${selectedGroupId}/`, {
             method: 'DELETE',
@@ -358,10 +388,7 @@ function handleLogout() {
         if (taskList) {
             taskList.innerHTML = '';
         }
-        if (loginForm && taskManager) {
-            loginForm.style.display = 'flex';
-            taskManager.style.display = 'none';
-        }
+        showMainScreen();
         alert("You have been logged out.");
     });
 }
@@ -378,14 +405,12 @@ function handleAddTask() {
       return;
   }
   const selectedGroupId = groupDropdown.value;
-
   const data = {
     text: taskText,
   };
   if (selectedGroupId !== '') {
       data.group = selectedGroupId;
   }
-  
   getToken().then(token => {
     fetch(`${API_URL}tasks/`, {
       method: 'POST',
@@ -449,13 +474,65 @@ function handleAddGroup() {
   }
 }
 
+// UI state management functions
+function showMainScreen() {
+    mainForm.classList.remove('hidden-element');
+    loginForm.classList.add('hidden-element');
+    signupForm.classList.add('hidden-element');
+    taskManager.classList.add('hidden-element');
+    
+    // Attempt to play video when main screen is shown
+    if (splashVideo) {
+        splashVideo.play().catch(e => console.warn("Video autoplay prevented on showMainScreen:", e));
+    }
+}
+
+function showLoginForm() {
+    mainForm.classList.add('hidden-element');
+    loginForm.classList.remove('hidden-element');
+    signupForm.classList.add('hidden-element');
+    taskManager.classList.add('hidden-element');
+    if (splashVideo) splashVideo.pause(); // Pause video when navigating away
+}
+
+function showSignupForm() {
+    mainForm.classList.add('hidden-element');
+    loginForm.classList.add('hidden-element');
+    signupForm.classList.remove('hidden-element');
+    taskManager.classList.add('hidden-element');
+    if (splashVideo) splashVideo.pause(); // Pause video when navigating away
+}
+
+function showTaskManager() {
+    mainForm.classList.add('hidden-element');
+    loginForm.classList.add('hidden-element');
+    signupForm.classList.add('hidden-element');
+    taskManager.classList.remove('hidden-element');
+    if (splashVideo) splashVideo.pause(); // Pause video when navigating away
+}
+
+
+// Main DOMContentLoaded listener
 document.addEventListener('DOMContentLoaded', () => {
-    // Get all HTML element references on load
+    // Get all HTML element references
+    mainForm = document.getElementById('main-form');
     loginForm = document.getElementById('login-form');
-    usernameInput = document.getElementById('username');
-    passwordInput = document.getElementById('password');
-    loginBtn = document.getElementById('login-btn');
+    signupForm = document.getElementById('signup-form');
     taskManager = document.getElementById('task-manager');
+    splashVideo = document.getElementById('splash-video'); // Get reference to video
+
+    loginBtn = document.getElementById('login-btn');
+    signupBtn = document.getElementById('signup-btn');
+    submitLoginBtn = document.getElementById('submit-login-btn');
+    submitSignupBtn = document.getElementById('submit-signup-btn');
+    backToMainBtn = document.getElementById('back-to-main');
+    backToMain2Btn = document.getElementById('back-to-main-2');
+    
+    loginUsernameInput = document.getElementById('login-username');
+    loginPasswordInput = document.getElementById('login-password');
+    signupUsernameInput = document.getElementById('signup-username');
+    signupPasswordInput = document.getElementById('signup-password');
+
     addTaskBtn = document.getElementById('add-task-btn');
     taskInput = document.getElementById('task-input');
     taskList = document.getElementById('task-list');
@@ -463,11 +540,15 @@ document.addEventListener('DOMContentLoaded', () => {
     addGroupBtn = document.getElementById('add-group-btn');
     deleteGroupBtn = document.getElementById('delete-group-btn');
     logoutBtn = document.getElementById('logout-btn');
-    const splashVideo = document.getElementById('splash-video');
-    const welcomeText = loginForm.querySelector('h1');
 
     // Attach all event listeners
-    if (loginBtn) loginBtn.addEventListener('click', handleLogin);
+    if (loginBtn) loginBtn.addEventListener('click', showLoginForm);
+    if (signupBtn) signupBtn.addEventListener('click', showSignupForm);
+    if (submitLoginBtn) submitLoginBtn.addEventListener('click', handleLogin);
+    if (submitSignupBtn) submitSignupBtn.addEventListener('click', handleRegister);
+    if (backToMainBtn) backToMainBtn.addEventListener('click', showMainScreen);
+    if (backToMain2Btn) backToMain2Btn.addEventListener('click', showMainScreen);
+    
     if (addTaskBtn) addTaskBtn.addEventListener('click', handleAddTask);
     if (addGroupBtn) addGroupBtn.addEventListener('click', handleAddGroup);
     if (groupDropdown) groupDropdown.addEventListener('change', () => loadTasks());
@@ -477,24 +558,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial check for a stored token
     getToken().then(token => {
         if (token) {
-            // User is already logged in, show the task manager
-            if (loginForm) loginForm.style.display = 'none';
-            if (taskManager) taskManager.style.display = 'block';
+            showTaskManager(); // Show task manager directly
             loadGroups();
             loadTasks();
         } else {
-            // No token found, show the login form
-            if (loginForm) loginForm.style.display = 'flex';
-            if (taskManager) taskManager.style.display = 'none';
-
-            // Ensure the video is visible and playing when the login form is shown
-            if (splashVideo) {
-                splashVideo.play().catch(error => {
-                    console.warn("Video autoplay prevented:", error);
-                });
-            }
-            // All other login form elements are visible by default
-            // since there's no code to hide them initially in this block.
+            showMainScreen(); // Show main screen with video
         }
     });
 });
