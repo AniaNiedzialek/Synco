@@ -13,6 +13,7 @@ const loginPasswordInput = document.getElementById('login-password');
 const signupUsernameInput = document.getElementById('signup-username');
 const signupPasswordInput = document.getElementById('signup-password');
 const taskInput = document.getElementById('task-input');
+const priorityDropdown = document.getElementById('priority-dropdown');
 const taskList = document.getElementById('task-list');
 const groupDropdown = document.getElementById('group-dropdown');
 const splashVideo = document.getElementById('splash-video');
@@ -20,6 +21,7 @@ const groupMembersModal = document.getElementById('group-members-modal');
 const memberUsernameInput = document.getElementById('member-username-input');
 const groupMembersList = document.getElementById('group-members-list');
 const modalGroupName = document.getElementById('modal-group-name');
+const groupMembersError = document.getElementById('group-members-error');
 
 // Buttons
 const loginBtn = document.getElementById('login-btn');
@@ -35,7 +37,6 @@ const logoutBtn = document.getElementById('logout-btn');
 const manageMembersBtn = document.getElementById('manage-members-btn');
 const closeMemberModalBtn = document.querySelector('#group-members-modal .close-button');
 const addMemberBtn = document.getElementById('add-member-btn');
-const groupMembersError = document.getElementById('group-members-error');
 
 // Event Listeners
 loginBtn.addEventListener('click', () => showLoginForm());
@@ -55,6 +56,17 @@ logoutBtn.addEventListener('click', handleLogout);
 manageMembersBtn.addEventListener('click', showGroupMembersModal);
 closeMemberModalBtn.addEventListener('click', closeGroupMembersModal);
 addMemberBtn.addEventListener('click', handleAddMember);
+
+// Initial check on popup load
+document.addEventListener('DOMContentLoaded', () => {
+    getToken().then(() => {
+        showTaskManager();
+        loadGroups();
+    }).catch(() => {
+        showMainForm();
+        splashVideo.play();
+    });
+});
 
 // Helper function to get token
 function getToken() {
@@ -183,8 +195,11 @@ function handleAddTask() {
     const text = taskInput.value.trim();
     if (text === '') return;
     const selectedGroup = groupDropdown.value;
+    const priority = priorityDropdown.value;
+
     const body = {
-        text: text
+        text: text,
+        priority: priority
     };
     if (selectedGroup !== 'personal') {
         body.group = selectedGroup;
@@ -203,6 +218,7 @@ function handleAddTask() {
             const newTaskElement = createTaskElement(task);
             taskList.appendChild(newTaskElement);
             taskInput.value = '';
+            priorityDropdown.value = 'medium';
         })
         .catch(error => console.error('Error adding task:', error));
     }).catch(error => console.error(error));
@@ -250,7 +266,7 @@ function handleAddGroup() {
             newOption.textContent = newGroup.name;
             groupDropdown.appendChild(newOption);
             groupDropdown.value = newGroup.id;
-            loadTasks(); // Load tasks for the new group
+            loadTasks();
         })
         .catch(error => console.error('Error adding group:', error));
     }).catch(error => console.error(error));
@@ -273,7 +289,7 @@ function handleDeleteGroup() {
             .then(response => {
                 if (response.ok) {
                     alert("Group deleted successfully.");
-                    loadGroups(); // Reload groups to update dropdown
+                    loadGroups();
                 } else {
                     alert("Failed to delete group. You may not have permission.");
                 }
@@ -308,7 +324,7 @@ function loadGroups() {
             groups.forEach(group => {
                 const option = document.createElement('option');
                 option.value = group.id;
-                option.textContent = group.name; // ✨ Use group.name for display
+                option.textContent = group.name;
                 groupDropdown.appendChild(option);
             });
             chrome.storage.local.get([SELECTED_GROUP_KEY], function(result) {
@@ -327,96 +343,109 @@ function loadGroups() {
     });
 }
 
-
-function loadTasks() {
-    const selectedGroupId = groupDropdown.value;
-    let url = `${API_URL}tasks/`;
-    if (selectedGroupId === 'personal') {
-        url += '?group__isnull=True';
-    } else {
-        url += `?group=${selectedGroupId}`;
-    }
-    getToken().then(token => {
-        fetch(url, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Token ${token}`
-            },
-        })
-        .then(response => {
-            if (response.status === 403 || response.status === 404) {
-                // Not a member of this group, go back to personal
-                alert("You are no longer a member of this group. Switching to Personal tasks.");
-                groupDropdown.value = 'personal';
-                loadTasks();
-                return { tasks: [] }; // Return empty to prevent errors
-            }
-            return response.json();
-        })
-        .then(tasks => {
-            taskList.innerHTML = '';
-            if (tasks.detail) {
-                console.error("Error from API:", tasks.detail);
-                return;
-            }
-            tasks.forEach(task => {
-                const newTaskElement = createTaskElement(task);
-                taskList.appendChild(newTaskElement);
-            });
-        })
-        .catch(error => console.error('Error loading tasks:', error));
-    }).catch(error => {
-        console.error("Not authenticated, showing main form:", error);
-        showMainForm();
-    });
-}
-
 function createTaskElement(task) {
-    const newTask = document.createElement('li');
+    const li = document.createElement('li');
+    li.setAttribute('data-task-id', task.id);
+    li.setAttribute('data-group-id', task.group);
+
+    if (task.priority) {
+        li.classList.add(`priority-${task.priority}`);
+    }
+
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.checked = task.completed;
     checkbox.classList.add('task-checkbox');
     checkbox.addEventListener('change', () => handleCompleteTask(task, checkbox));
-    newTask.appendChild(checkbox);
-    const taskSpan = document.createElement('span');
-    taskSpan.textContent = task.text;
-    taskSpan.classList.add('task-text');
+
+    const span = document.createElement('span');
+    span.textContent = task.text;
+    span.classList.add('task-text');
     if (task.completed) {
-        taskSpan.classList.add('completed');
+        span.classList.add('completed');
     }
-    taskSpan.addEventListener('click', () => activateTaskEdit(task, taskSpan));
-    newTask.appendChild(taskSpan);
+    span.addEventListener('click', () => activateTaskEdit(task, span));
+
     const removeBtn = document.createElement('button');
     removeBtn.textContent = 'x';
     removeBtn.classList.add('remove-btn');
-    newTask.appendChild(removeBtn);
-    removeBtn.addEventListener('click', () => {
-        if (!task.id) {
-            console.error("Task ID not found for deletion. Task might not have been properly created.");
-            alert("Failed to delete task. It might not have been created on the server.");
-            return;
-        }
-        getToken().then(token => {
-            fetch(`${API_URL}tasks/${task.id}/`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Token ${token}`
-                },
-            }).then(response => {
-                if (response.ok) {
-                    newTask.remove();
-                } else {
-                    console.error('Failed to delete task with ID:', task.id, 'Response:', response);
-                    alert('Failed to delete task. You might not have permission or it no longer exists.');
-                }
-            }).catch(error => {
-                console.error('Network error on delete:', error);
-                alert('Network error on delete.');
-            });
+    removeBtn.addEventListener('click', () => deleteTask(task.id));
+
+    li.appendChild(checkbox);
+    li.appendChild(span);
+    li.appendChild(removeBtn);
+    
+    return li;
+}
+
+function deleteTask(taskId) {
+    getToken().then(token => {
+        fetch(`${API_URL}tasks/${taskId}/`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Token ${token}`
+            },
+        })
+        .then(response => {
+            if (response.ok) {
+                document.querySelector(`li[data-task-id="${taskId}"]`).remove();
+            } else {
+                alert("Failed to delete task. You may not have permission.");
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting task:', error);
+            alert("Error deleting task.");
         });
+    }).catch(error => console.error(error));
+}
+
+function loadTasks() {
+    getToken().then(token => {
+        const selectedGroupId = groupDropdown.value;
+        
+        let url = `${API_URL}tasks/`;
+        if (selectedGroupId === 'personal') {
+            url += '?group__isnull=True';
+        } else if (selectedGroupId && selectedGroupId !== 'undefined') {
+            url += `?group=${selectedGroupId}`;
+        }
+        
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Token ${token}`
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(errorData => {
+                    throw new Error(errorData.error || 'Failed to load tasks.');
+                });
+            }
+            return response.json();
+        })
+        .then(tasks => {
+            taskList.innerHTML = '';
+            tasks.forEach(task => {
+                const newTaskElement = createTaskElement(task);
+                taskList.appendChild(newTaskElement);
+            });
+        })
+        .catch(error => {
+            console.error('Error loading tasks:', error);
+            const taskError = document.getElementById('task-error');
+            if (error.message.includes('expected a number but got \'undefined\'')) {
+                 taskError.textContent = "Please select a group to view tasks.";
+            } else {
+                taskError.textContent = error.message;
+            }
+            taskError.classList.remove('hidden-element');
+        });
+    }).catch(error => {
+        console.error("Token not found, please log in.");
+        showMainForm();
     });
-    return newTask;
 }
 
 function activateTaskEdit(task, taskSpanElement) {
@@ -485,21 +514,38 @@ function activateTaskEdit(task, taskSpanElement) {
 function showGroupMembersModal() {
     const selectedGroupId = groupDropdown.value;
     if (selectedGroupId === 'personal') {
-        alert("The 'Personal' group cannot have members to manage.");
+        alert("Cannot manage members for the 'Personal' group.");
         return;
     }
+
     const selectedGroupName = groupDropdown.options[groupDropdown.selectedIndex].textContent;
     modalGroupName.textContent = selectedGroupName;
+
     groupMembersModal.classList.remove('hidden-element');
     loadGroupMembers(selectedGroupId);
+    groupMembersError.classList.add('hidden-element');
 }
 
 function closeGroupMembersModal() {
     groupMembersModal.classList.add('hidden-element');
+    memberUsernameInput.value = '';
+    groupMembersList.innerHTML = '';
     groupMembersError.classList.add('hidden-element');
 }
 
-// ... (rest of your popup.js code)
+function createMemberListItem(member) {
+    const li = document.createElement('li');
+    li.setAttribute('data-member-id', member.id);
+    li.textContent = member.username;
+
+    const removeBtn = document.createElement('button');
+    removeBtn.textContent = 'x';
+    removeBtn.classList.add('remove-member-btn');
+    removeBtn.addEventListener('click', () => handleRemoveMember(member.username, li));
+    
+    li.appendChild(removeBtn);
+    return li;
+}
 
 function loadGroupMembers(groupId) {
     getToken().then(token => {
@@ -510,56 +556,40 @@ function loadGroupMembers(groupId) {
             }
         })
         .then(response => {
-            if (!response.ok) throw new Error('Failed to load group details.');
+            if (!response.ok) {
+                return response.json().then(errorData => {
+                    throw new Error(errorData.error || 'Failed to load group members.');
+                });
+            }
             return response.json();
         })
-        .then(group => {
+        .then(groupData => {
             groupMembersList.innerHTML = '';
-            // Make sure the current user cannot remove themselves from the list via the 'x' button
-            const currentUserUsername = group.members.find(member => member === group.owner_username); // Assuming 'owner_username' is available (if you want to prevent owner removal)
-            
-            group.members.forEach(memberUsername => { // Iterate directly over usernames
-                const memberElement = document.createElement('li');
-                memberElement.textContent = memberUsername; // Display the username directly
-
-                // Don't show remove button for the current user (if logged in as that user) or for the group owner
-                // This check needs the current logged-in username, which we don't have easily here.
-                // For simplicity, we'll allow removing anyone for now and let the backend handle owner-specific rules.
-                // You cannot remove yourself from a group this way - this rule is handled by the backend.
-                // However, we can prevent showing the remove button for the *currently logged-in user*.
-                getToken().then(currentToken => { // Fetch token to identify current user (less ideal but works)
-                    // You might need a way to get the current logged-in username here.
-                    // For now, let's assume `request.user` in the backend is the ultimate authority.
-                    // We'll just prevent the owner from being removed for visual consistency if possible.
-                    // (This part is tricky without an explicit "get current user" endpoint.)
-                    
-                    // Simple check: If the member listed is the current token's owner, don't show the remove button
-                    // A better way would be to fetch current user's username separately.
-                    // For now, let's allow removing anyone, and backend will block self-removal.
-                    const removeBtn = document.createElement('button');
-                    removeBtn.textContent = 'x';
-                    removeBtn.classList.add('remove-member-btn');
-                    removeBtn.addEventListener('click', () => handleRemoveMember(groupId, memberUsername)); // Pass username
-                    memberElement.appendChild(removeBtn);
-                });
-                groupMembersList.appendChild(memberElement);
+            groupData.members.forEach(member => {
+                const memberItem = createMemberListItem(member);
+                groupMembersList.appendChild(memberItem);
             });
         })
         .catch(error => {
             console.error('Error loading group members:', error);
-            groupMembersError.textContent = "Failed to load group members. " + error.message;
+            groupMembersError.textContent = error.message;
             groupMembersError.classList.remove('hidden-element');
         });
+    }).catch(error => {
+        console.error("Token not found, please log in.");
+        showMainForm();
     });
 }
 
 function handleAddMember() {
+    const selectedGroupId = groupDropdown.value;
     const username = memberUsernameInput.value.trim();
     if (!username) {
-        alert("Please enter a username to add.");
+        groupMembersError.textContent = "Please enter a username.";
+        groupMembersError.classList.remove('hidden-element');
         return;
     }
-    const selectedGroupId = groupDropdown.value;
+
     getToken().then(token => {
         fetch(`${API_URL}groups/${selectedGroupId}/members/`, {
             method: 'POST',
@@ -567,68 +597,83 @@ function handleAddMember() {
                 'Content-Type': 'application/json',
                 'Authorization': `Token ${token}`
             },
-            body: JSON.stringify({ username: username })
+            body: JSON.stringify({ username: username }),
         })
         .then(response => {
-            if (response.ok) {
-                alert(`User "${username}" added successfully!`);
-                memberUsernameInput.value = '';
-                loadGroupMembers(selectedGroupId);
-            } else {
-                return response.json().then(err => {
-                    throw new Error(err.error || 'Failed to add member.');
+            if (!response.ok) {
+                return response.json().then(errorData => {
+                    throw new Error(errorData.error || 'Failed to add member.');
                 });
             }
+            return response.json();
+        })
+        .then(data => {
+            console.log(data.message);
+            memberUsernameInput.value = '';
+            groupMembersError.classList.add('hidden-element');
+            loadGroupMembers(selectedGroupId);
         })
         .catch(error => {
-            alert(error.message);
             console.error('Error adding member:', error);
             groupMembersError.textContent = error.message;
             groupMembersError.classList.remove('hidden-element');
         });
+    }).catch(error => {
+        console.error(error);
+        groupMembersError.textContent = "Authentication error. Please log in.";
+        groupMembersError.classList.remove('hidden-element');
     });
 }
+function updatePriorityIcon() {
+    const selectedPriority = priorityDropdown.value;
+    priorityIcon.textContent = 'priority_high'; 
+    priorityIcon.className = 'material-symbols-rounded'; // Ensure base class is always there
 
-function handleRemoveMember(groupId, memberUsername) { // Accept memberUsername
-    if (confirm(`Are you sure you want to remove "${memberUsername}" from this group?`)) {
-        getToken().then(token => {
-            fetch(`${API_URL}groups/${groupId}/members/`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Token ${token}`
-                },
-                body: JSON.stringify({ username: memberUsername }) // Send username for DELETE
-            })
-            .then(response => {
-                if (response.ok) {
-                    alert(`"${memberUsername}" has been removed.`);
-                    loadGroupMembers(groupId); // Reload members list
-                } else {
-                    return response.json().then(err => {
-                        throw new Error(err.error || 'Failed to remove member.');
-                    });
-                }
-            })
-            .catch(error => {
-                alert(error.message);
-                console.error('Error removing member:', error);
-                groupMembersError.textContent = error.message;
-                groupMembersError.classList.remove('hidden-element');
-            });
-        });
+    switch (selectedPriority) {
+        case 'low':
+            priorityIcon.classList.add('icon-low');
+            break;
+        case 'medium':
+            priorityIcon.classList.add('icon-medium');
+            break;
+        case 'high':
+            priorityIcon.classList.add('icon-high');
+            break;
     }
 }
 
-// ... (rest of your popup.js code)
-
-// Initial check on popup load
-document.addEventListener('DOMContentLoaded', () => {
-    getToken().then(() => {
-        showTaskManager();
-        loadGroups();
-    }).catch(() => {
-        showMainForm();
-        splashVideo.play();
+function handleRemoveMember(username, listItemElement) {
+    const selectedGroupId = groupDropdown.value;
+    getToken().then(token => {
+        fetch(`${API_URL}groups/${selectedGroupId}/members/`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Token ${token}`
+            },
+            body: JSON.stringify({ username: username }),
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(errorData => {
+                    throw new Error(errorData.error || 'Failed to remove member.');
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log(data.message);
+            listItemElement.remove();
+            groupMembersError.classList.add('hidden-element');
+        })
+        .catch(error => {
+            console.error('Error removing member:', error);
+            groupMembersError.textContent = error.message;
+            groupMembersError.classList.remove('hidden-element');
+        });
+    }).catch(error => {
+        console.error(error);
+        groupMembersError.textContent = "Authentication error. Please log in.";
+        groupMembersError.classList.remove('hidden-element');
     });
-});
+}

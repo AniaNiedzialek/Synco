@@ -1,82 +1,71 @@
 /* General Body Styles */
 body {
-    font-family: 'Montserrat Alternates' sans-serif; /* Professional sans-serif font */
-    width: 380px; /* ✨ ADJUSTED: Increased width for more space */
-    background-color: #f8f8f8; /* Light grey background */
+    font-family: 'Montserrat Alternates', sans-serif;
+    width: 380px;
+    background-color: #f8f8f8;
     margin: 0;
     padding: 10px;
-    color: #333; /* Dark grey for general text */
-    box-sizing: border-box; /* Include padding in width calculation */
-    overflow-x: hidden; /* Prevent horizontal scroll */
+    color: #333;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
 }
 
 /* Header Styles */
 #header {
     display: flex;
-    flex-direction: column; /* Stack items vertically */
-    align-items: center; /* Center items horizontally */
+    flex-direction: column;
+    align-items: center;
     margin-bottom: 20px;
     padding-bottom: 15px;
-    border-bottom: 1px solid #eee; /* Subtle separator */
+    border-bottom: 1px solid #eee;
 }
 
 #header img {
-    width: 100px; /* Adjust logo size */
+    width: 100px;
     margin-bottom: 10px;
 }
 
 #header h1 {
     font-size: 24px;
-    color: #2c3e50; /* Darker blue/grey for main title */
+    color: #2c3e50;
     margin: 0;
     font-weight: 600;
 }
 
-/* Group Selector */
-#group-selector {
-    display: flex;
-    align-items: center;
-    gap: 10px; /* ✨ ADJUSTED: Increased space between group elements */
-    margin-top: 15px;
-    width: 100%;
-    justify-content: center; /* Center group selector horizontally */
-}
-
-#group-selector label {
-    font-size: 14px;
-    color: #555;
-    font-weight: 500;
-    flex-shrink: 0; /* Prevent label from shrinking */
-}
-
+/* Group Controls */
 #group-controls {
     display: flex;
     align-items: center;
-    gap: 5px; /* Adjust spacing between dropdown and buttons */
+    gap: 5px;
 }
 
 #group-dropdown {
-    padding: 8px 30px 8px 10px; /* ✨ ADJUSTED: Increased padding-right for arrow space */
+    padding: 8px 30px 8px 10px;
     border: 1px solid #333;
     border-radius: 5px;
     background-color: #f9f9f9;
     font-size: 14px;
-    appearance: none; /* ✨ ADDED: Hides default arrow to potentially add custom one if needed, but important for padding */
-    -webkit-appearance: none; /* For Safari */
-    -moz-appearance: none; /* For Firefox */
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
     background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23888888%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-6.5%200-12.3%203.1-16.3%208.1-4%205.1-4.7%2011.6-1.7%2017.9l138%20188.8c4.3%205.6%2010.8%208.7%2017.5%208.7s13.2-3.1%2017.5-8.7l138-188.8c3-6.3%202.3-12.8-1.7-17.9z%22%2F%3E%3C%2Fsvg%3E');
     background-repeat: no-repeat;
-    background-position: right 8px center; /* Position the custom arrow */
-    background-size: 7px; /* Size the custom arrow */
+    background-position: right 8px center;
+    background-size: 7px;
     cursor: pointer;
-    min-width: 80px; /* ✨ ADDED: Ensure minimum width for the dropdown */
-    max-width: 150px; /* ✨ ADDED: Optional: Limit maximum width */
-    white-space: nowrap; /* Prevent text from wrapping if it gets too long */
-    overflow: hidden; /* Hide overflowing text */
-    text-overflow: ellipsis; /* Show ellipsis for overflowing text */
+    min-width: 80px;
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-/* Buttons */
+/* Main Buttons */
 button {
     padding: 8px 15px;
     border: none;
@@ -85,32 +74,37 @@ button {
     font-size: 14px;
     font-weight: bold;
     transition: background-color 0.2s ease, transform 0.1s ease;
-    white-space: nowrap; /* Prevent text wrap */
+    white-space: nowrap;
+    font-family: 'Montserrat Alternates', sans-serif;
 }
 
 #login-btn,
-#add-task-btn {
-    background-color: #4CAF50; /* Green for primary actions */
+#add-task-btn,
+#submit-login-btn,
+#submit-signup-btn,
+#add-member-btn {
+    background-color: #4CAF50;
     color: white;
-    width: 100%; /* Full width for login/add task */
+    width: 100%;
     margin-top: 15px;
-    font-family: 'Montserrat Alternates', sans-serif;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 #login-btn:hover,
-#add-task-btn:hover {
+#add-task-btn:hover,
+#submit-login-btn:hover,
+#submit-signup-btn:hover,
+#add-member-btn:hover {
     background-color: #45a049;
     transform: translateY(-1px);
 }
 
 #add-group-btn {
-    background-color: #007bff; /* Blue for add group */
+    background-color: #007bff;
     color: white;
-    padding: 6px 6px; /* Smaller padding for + button */
+    padding: 6px;
     font-size: 12px;
     border-radius: 30px;
-
 }
 
 #add-group-btn:hover {
@@ -119,9 +113,9 @@ button {
 }
 
 #delete-group-btn {
-    background-color: #dc3545; /* Red for delete group */
+    background-color: #dc3545;
     color: white;
-    padding: 6px 6px; /* Smaller padding for + button */
+    padding: 6px;
     font-size: 12px;
     border-radius: 30px;
 }
@@ -132,15 +126,38 @@ button {
 }
 
 #logout-btn {
-    background-color: #6c757d; /* Grey for logout */
+    background-color: #6c757d;
     color: white;
     margin-top: 20px;
-    width: 100%; /* Full width for logout button */
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    width: 100%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 #logout-btn:hover {
     background-color: #5a6268;
+    transform: translateY(-1px);
+}
+
+#signup-btn {
+    background-color: #f0f0f0;
+    color: #36657c;
+    border: 2px solid #36657c;
+}
+
+#signup-btn:hover {
+    background-color: #e5e5e5;
+}
+
+#manage-members-btn {
+    background-color: #c0d3dc;
+    color: white;
+    padding: 8px 12px;
+    font-size: 16px;
+    border-radius: 20px;
+}
+
+#manage-members-btn:hover {
+    background-color: #2a5165;
     transform: translateY(-1px);
 }
 
@@ -155,57 +172,80 @@ input[type="password"] {
     font-size: 14px;
     color: #333;
     box-sizing: border-box;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
     transition: border-color 0.2s ease;
-    font-family: 'Montserrat Alternates', sans-serif;
 }
 
 input[type="text"]:focus,
 input[type="password"]:focus {
     border-color: #80bdff;
     outline: none;
-    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, .25);
 }
 
-/* Login Form */
-/* #login-form {
+/* Main Forms & Layouts */
+#main-form,
+#login-form,
+#signup-form,
+#task-manager {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center; /* Center content vertically */
-    /* height: 100vh; 
-    height: 100%;
-    background-color: #fff;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    width: 100%;
     max-width: 300px;
     margin: 0 auto;
-/* } */
+}
 
-/* #login-form h1 {
+#login-form,
+#signup-form,
+#task-manager {
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    background-color: #fff;
+}
+
+/* Headings */
+#main-form h1 {
     color: #36657c;
-    font-size: 28px;
+    font-size: 32px;
+    margin-top: 0;
     margin-bottom: 10px;
-    font-weight: 100;
-    font-family: 'Pacifico', sans-serif;
+    font-weight: 700;
+    font-family: 'Pacifico', cursive;
     width: 100%;
     text-align: center;
-} */
-/*  
-#login-form h2 {
+}
+
+#main-form h3 {
     color: #555;
     font-size: 18px;
-    margin-bottom: 20px;
-    font-weight: 400;
-} */ 
+    margin-top: 0;
+    margin-bottom: 0px;
+    width: 100%;
+    text-align: center;
+}
 
-/* Task Manager */
-#task-manager {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+#login-form h2,
+#signup-form h2 {
+    color: #36657c;
+    font-size: 24px;
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    color: #36657c;
+    font-size: 22px;
+    text-align: center;
+}
+
+.modal-content h3 {
+    margin: -10px 0 10px;
+    font-size: 18px;
+    color: #555;
+    text-align: center;
 }
 
 /* Task List */
@@ -213,9 +253,9 @@ input[type="password"]:focus {
     list-style: none;
     padding: 0;
     margin-top: 20px;
-    max-height: 250px; /* Limit height for scrollability */
-    overflow-y: auto; /* Enable vertical scrolling */
-    border-top: 1px solid #eee; /* Separator for task list */
+    max-height: 250px;
+    overflow-y: auto;
+    border-top: 1px solid #eee;
     padding-top: 15px;
 }
 
@@ -240,12 +280,12 @@ input[type="password"]:focus {
 li {
     display: flex;
     align-items: center;
-    gap: 12px; /* Space between checkbox, text, and button */
+    gap: 12px;
     padding: 10px 0;
     border-bottom: 1px solid #eee;
     font-size: 15px;
     color: #333;
-    position: relative; /* For the edit input positioning */
+    position: relative;
 }
 
 li:last-child {
@@ -256,16 +296,16 @@ li:last-child {
     cursor: pointer;
     width: 18px;
     height: 18px;
-    min-width: 18px; /* Ensure checkbox doesn't shrink */
+    min-width: 18px;
     min-height: 18px;
-    accent-color: #36657c; /* Use logo color for checkbox */
+    accent-color: #36657c;
 }
 
 .task-text {
     flex-grow: 1;
     cursor: pointer;
     padding: 2px 0;
-    word-break: break-word; /* Allow long words to break */
+    word-break: break-word;
 }
 
 .task-text.completed {
@@ -279,11 +319,11 @@ li:last-child {
     background-color: #e0e0e0;
     color: #666;
     padding: 5px 8px;
-    border-radius: 50%; /* Circular button */
+    border-radius: 50%;
     font-size: 12px;
-    line-height: 1; /* Center 'x' vertically */
-    height: 24px; /* Fixed height for circle */
-    width: 24px; /* Fixed width for circle */
+    line-height: 1;
+    height: 24px;
+    width: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -291,14 +331,26 @@ li:last-child {
 }
 
 .remove-btn:hover {
-    background-color: #dc3545; /* Red on hover for delete */
+    background-color: #dc3545;
     color: white;
 }
 
+/* Edit Task Input */
+.edit-task-input {
+    flex-grow: 1;
+    padding: 5px 8px;
+    border: 1px solid #007bff;
+    border-radius: 4px;
+    font-size: 15px;
+    box-shadow: 0 0 0 0.1rem rgba(0, 123, 255, .25);
+    margin: -2px 0;
+}
+
 /* Task Input Container */
-#task-input-container {
+#input-container {
     display: flex;
-    gap: 12px; /* ✨ ADJUSTED: Increased space between input and button */
+    flex-direction: column;
+    gap: 15px;
     margin-top: 20px;
     padding-top: 15px;
     border-top: 1px solid #eee;
@@ -306,36 +358,57 @@ li:last-child {
 
 #task-input-container input {
     flex-grow: 1;
-    margin-bottom: 0; /* Override default input margin */
+    margin-bottom: 0;
 }
 
 #task-input-container button {
     flex-shrink: 0;
-    width: auto; /* Allow button to size content */
+    width: auto;
 }
 
-/* Edit Task Input (when task is being edited) */
-.edit-task-input {
-    flex-grow: 1;
-    padding: 5px 8px;
-    border: 1px solid #007bff; /* Highlight editing input */
-    border-radius: 4px;
-    font-size: 15px;
-    box-shadow: 0 0 0 0.1rem rgba(0,123,255,.25);
-    margin: -2px 0; /* Adjust to align with line height */
+/* Priority Input Row */
+#priority-input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#priority-input-row label {
+    font-size: 14px;
+    color: #605f5f;
+    font-weight: 500;
+}
+
+#priority-input-row select {
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+/* Priority Styles */
+.priority-low {
+    border-left: 5px solid #4CAF50;
+    padding-left: 5px;
+}
+
+.priority-medium {
+    border-left: 5px solid #ff9800;
+    padding-left: 5px;
+}
+
+.priority-high {
+    border-left: 5px solid #f44336;
+    padding-left: 5px;
 }
 
 /* Splash Video & Animation Styles */
 #splash-video {
-    margin-bottom:10px;
+    margin-bottom: 10px;
     width: 100%;
     max-width: 300px;
     border-radius: 150px;
     max-height: 300px;
     object-fit: cover;
-}
-.hidden-element {
-    display: none !important;
 }
 
 .fade-in {
@@ -343,10 +416,15 @@ li:last-child {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
+/* Login/Signup Forms */
 #auth-buttons {
     display: flex;
     flex-direction: column;
@@ -354,150 +432,33 @@ li:last-child {
     margin-top: 15px;
     gap: 10px;
 }
-#auth-buttons button {
-    width: 100%;
-    padding: 12px 20px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    border-radius: 6px;
-    transition: background-color 0.3s ease;
-}
 
-#signup-btn {
-    background-color: #f0f0f0;
-    color: #36657c;
-    border: 2px solid #36657c;
-    font-family: 'Montserrat Alternates', sans-serif;
-}
-
-#signup-btn:hover {
-    background-color: #e5e5e5;
-}
-
-#login-form, #signup-form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 25px;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-    background-color: #fff;
-    width: 100%;
-    max-width: 300px;
-    margin: 0 auto;
-    font-family: 'Montserrat Alternates', sans-serif;
-}
-
-#login-form h2, #signup-form h2 {
-    color: #36657c;
-    font-size: 24px;
-    margin-top: 0;
-    margin-bottom: 20px;
-    font-family: 'Montserrat Alternates', sans-serif;
-}
-
-#login-form input, #signup-form input {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-#submit-login-btn, #submit-signup-btn {
-    width: 100%;
-    padding: 10px;
-    background-color: #36657c;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-    margin-top: 5px;
-    font-family: 'Montserrat Alternates', sans-serif;
-}
-
-#submit-login-btn:hover, #submit-signup-btn:hover {
-    background-color: #2a5165;
-}
-
-#back-to-main, #back-to-main-2 {
+#back-to-main,
+#back-to-main-2 {
     margin-top: 15px;
     color: #36657c;
     cursor: pointer;
     font-size: 14px;
-    font-family: 'Montserrat Alternates', sans-serif;
 }
 
-#back-to-main:hover, #back-to-main-2:hover {
+#back-to-main:hover,
+#back-to-main-2:hover {
     text-decoration: underline;
 }
 
-/* This is the crucial class to hide elements */
-.hidden-element {
-    display: none !important;
-}
-
-/* General body style adjustment to ensure forms are centered */
-body {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start; /* Aligns content to the top */
-    min-height: 100vh;
-}
-
-#main-form h1 {
-    color: #36657c; 
-    font-size: 32px;
-    margin-top: 0;
-    margin-bottom: 10px;
-    font-weight: 700;
-    font-family: 'Pacifico', sans-serif;
-    width: 100%;
-    text-align: center;
-}
-
-#main-form h3 {
-    color: #555;
-    font-size: 18px;
-    margin-top: 0;
-    margin-bottom: 0px;
-    /* font-weight: 100; */
-    font-family: 'Montserrat Alternates', sans-serif;
-    width: 100%;
-    text-align: center; 
-}
-
-/* ✨ NEW: Styles for the Manage Members button */
-#manage-members-btn {
-    background-color: #c0d3dc; /* Blue color for manage members */
-    color: white;
-    padding: 8px 12px;
-    font-size: 16px;
-    border-radius: 20px;
-}
-
-#manage-members-btn:hover {
-    background-color: #2a5165;
-    transform: translateY(-1px);
-}
-
-/* ✨ NEW: Styles for the Group Members Modal */
+/* Modal Styles */
 .modal {
-    position: fixed; /* Stay in place */
-    z-index: 1; /* Sit on top */
+    position: fixed;
+    z-index: 1;
     left: 0;
     top: 0;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
-    display: flex; /* Use flex to center content */
-    align-items: center; /* Center vertically */
-    justify-content: center; /* Center horizontally */
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .modal-content {
@@ -505,32 +466,17 @@ body {
     padding: 20px;
     border: 1px solid #888;
     border-radius: 8px;
-    width: 80%; /* Could be a fixed width like 300px */
+    width: 80%;
     max-width: 350px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     position: relative;
     display: flex;
     flex-direction: column;
     gap: 15px;
 }
 
-.modal-content h2 {
-    margin-top: 0;
-    color: #36657c;
-    font-size: 22px;
-    text-align: center;
-}
-
-.modal-content h3 {
-    margin: -10px 0 10px;
-    font-size: 18px;
-    color: #555;
-    text-align: center;
-}
-
 .close-button {
     color: #aaa;
-    float: right;
     font-size: 28px;
     font-weight: bold;
     position: absolute;
@@ -539,33 +485,9 @@ body {
     cursor: pointer;
 }
 
-.close-button:hover,
-.close-button:focus {
-    color: black;
-    text-decoration: none;
-    cursor: pointer;
-}
-
 .member-input-section {
     display: flex;
     gap: 10px;
-}
-
-.member-input-section input[type="text"] {
-    flex-grow: 1;
-    margin-bottom: 0; /* Override default input margin */
-}
-
-#add-member-btn {
-    background-color: #4CAF50; /* Green */
-    color: white;
-    padding: 8px 15px;
-    border-radius: 6px;
-    font-size: 14px;
-}
-
-#add-member-btn:hover {
-    background-color: #45a049;
 }
 
 #group-members-list {
@@ -585,10 +507,6 @@ body {
     border-bottom: 1px dotted #eee;
     font-size: 14px;
     color: #333;
-}
-
-#group-members-list li:last-child {
-    border-bottom: none;
 }
 
 .remove-member-btn {
@@ -616,4 +534,9 @@ body {
     font-size: 13px;
     text-align: center;
     margin-top: 10px;
+}
+
+/* Utility Class */
+.hidden-element {
+    display: none !important;
 }

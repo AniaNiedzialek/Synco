@@ -11,7 +11,7 @@
 <body>
     <div id="main-form">
         <video id="splash-video" src="images/animated.mp4" muted playsinline loop style="width: 300px"></video>
-        <h1>Welcome to Synco</h1>
+        <h1>Welcome to SynCo</h1>
         <h3>~ Synchronize & Collaborate ~</h3>
         <div id="auth-buttons">
             <button id="login-btn">Log In</button>
@@ -35,21 +35,35 @@
     </div>
 
     <div id="task-manager" class="hidden-element">
-        <div id="header">
-            <img src="images/logo.png" alt="Synco Logo" class="logo">
-            <div id="group-controls">
-                <select id="group-dropdown"></select>
-                <button id="add-group-btn">+</button>
-                <button id="delete-group-btn">x</button>
-                <button id="manage-members-btn" title="Manage Group Members">👥</button> </div>
-            <button id="logout-btn">Logout</button>
-        </div>
-        <div id="input-container">
-            <input type="text" id="task-input" placeholder="Add a new task...">
-            <button id="add-task-btn">Add Task</button>
-        </div>
-        <ul id="task-list"></ul>
+    <div id="header">
+        <img src="images/logo.png" alt="Synco Logo" class="logo">
+        <div id="group-controls">
+            <select id="group-dropdown"></select>
+            <button id="add-group-btn">+</button>
+            <button id="delete-group-btn">x</button>
+            <button id="manage-members-btn" title="Manage Group Members">👥</button> </div>
+        <button id="logout-btn">Logout</button>
     </div>
+
+    <div id="input-container">
+        <input type="text" id="task-input" placeholder="Add a new task...">
+
+        <div id="priority-input-row">
+            <label for="priority-dropdown">Select Priority:</label>
+            <div id="priority-select-wrapper">
+                <select id="priority-dropdown">
+                    <option value="low" selected>Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                </select>
+                </div>
+        </div>
+
+        <button id="add-task-btn">Add Task</button>
+    </div>
+    
+    <ul id="task-list"></ul>
+</div>
 
     <div id="group-members-modal" class="modal hidden-element">
         <div class="modal-content">
