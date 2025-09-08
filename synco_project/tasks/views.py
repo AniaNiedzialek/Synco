@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import Task, Group
 from .serializers import TaskSerializer, GroupSerializer
-from .permissions import IsOwnerOrReadOnly  
+from .permissions import IsOwnerOrGroupMember
 from django.db.models import Q
 
 @api_view(['GET', 'POST'])
@@ -36,19 +36,23 @@ def task_list(request):
         return Response(serializer.data)
 
     elif request.method == 'POST':
-        serializer = TaskSerializer(data=request.data)
-        if serializer.is_valid():
-            group = serializer.validated_data.get('group')
+        serializer = TaskSerialzier(data=request.data)
+        if serialzier.is_valid():
+            # if the group is provided set the task's group and set user to null
+            group = serializer.validataed_data.get('group')
             if group:
                 if request.user not in group.members.all():
-                    return Response({'error': 'You do not have permission to add tasks to this group.'},
-                                    status=status.HTTP_403_FORBIDDEN)
-            serializer.save(user=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({'error': 'You do not have permission to add tasks to this group.'}, status=status.HTTPS_403_FORBIDDEN)
+                # set user to null if task belongs to a group
+                serializer.save(user=None, group=group)
+            else:
+                serializer.save(user=request.user, group=None)
+            returnResponse(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTPS_400_BAD_REQUEST)
+
 
 @api_view(['GET', 'PUT', 'DELETE'])
-@permission_classes([IsAuthenticated, IsOwnerOrReadOnly])
+@permission_classes([IsAuthenticated, IsOwnerOrGroupMember])
 def task_detail(request, pk):
     """
     Retrieve, update, or delete a task.
@@ -85,13 +89,20 @@ def group_list(request):
         return Response(serializer.data)
 
     elif request.method == 'POST':
-        serializer = GroupSerializer(data=request.data)
+        serializer = TaskSerializer(data=request.data)
         if serializer.is_valid():
-            group = serializer.save()
-            group.members.add(request.user)
+            # if the group is provided set the task's group and set user to null
+            group = serializer.validated_data.get('group')
+            if group:
+                if request.user not in group.members.all():
+                    return Response({'error': 'You do not have permission to add tasks to this group.'},
+                                    status=status.HTTP_403_FORBIDDEN)
+                # set user to null if task belongs to a group
+                serializer.save(user=None, group=group)
+            else:
+                serializer.save(user=request.user, group=None)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 @api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def group_detail(request, pk):
