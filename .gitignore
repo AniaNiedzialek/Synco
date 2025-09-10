@@ -1,0 +1,18 @@
+# Virtual environment
+venv/
+env/
+
+# Byte-code files
+__pycache__/
+*.pyc
+
+# Database
+db.sqlite3
+
+# Development logs and settings
+.env
+.DS_Store
+.vscode/
+
+# Other files that may be created by Django
+staticfiles/
